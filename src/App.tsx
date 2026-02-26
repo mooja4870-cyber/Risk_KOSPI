@@ -6,7 +6,7 @@ import {
   type DailyTradingData,
   tradingData as mockTradingData
 } from './data/mockData';
-import { historicalCases, riskThresholds } from './data/historicalCases';
+import { historicalCases, riskThresholds, significantHistoricalStreaks } from './data/historicalCases';
 import { fetchLiveKOSPITradingData, type LiveDataMeta } from './data/liveData';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -560,6 +560,8 @@ function DailyTrading({ tradingData }: { tradingData: DailyTradingData[] }) {
    Risk Analysis
    ============================== */
 function RiskAnalysis({ tradingData }: { tradingData: DailyTradingData[] }) {
+  const [streakRange, setStreakRange] = useState<string>('3M');
+
   // Compute risk timeline
   const riskTimeline = useMemo(() => {
     return tradingData.map((d, i) => {
@@ -572,15 +574,28 @@ function RiskAnalysis({ tradingData }: { tradingData: DailyTradingData[] }) {
         consecutiveDays: r.consecutiveSellDays,
       };
     }).slice(-120);
-  }, []);
+  }, [tradingData]);
 
-  // Streak analysis
+  // Streak analysis with range filtering
   const streakAnalysis = useMemo(() => {
-    const streaks: { start: string; end: string; days: number; totalSold: number; kospiChange: number }[] = [];
+    // 1. Calculate from current data
+    const streaks: { start: string; end: string; days: number; totalSold: number; kospiChange: number; isHistorical?: boolean }[] = [];
     let streakStart = -1;
 
-    for (let i = 0; i < tradingData.length; i++) {
-      if (tradingData[i].financialInvestment < 0) {
+    // Filter trading data by selected range (for short ranges)
+    let filteredData = tradingData;
+    if (streakRange === '7D') {
+      filteredData = tradingData.slice(-7);
+    } else if (streakRange === '1M') {
+      filteredData = tradingData.slice(-20);
+    } else if (streakRange === '3M') {
+      filteredData = tradingData.slice(-60);
+    } else if (streakRange === '6M') {
+      filteredData = tradingData.slice(-120);
+    }
+
+    for (let i = 0; i < filteredData.length; i++) {
+      if (filteredData[i].financialInvestment < 0) {
         if (streakStart === -1) streakStart = i;
       } else {
         if (streakStart !== -1) {
@@ -588,40 +603,41 @@ function RiskAnalysis({ tradingData }: { tradingData: DailyTradingData[] }) {
           if (days >= 3) {
             let totalSold = 0;
             for (let j = streakStart; j < i; j++) {
-              totalSold += tradingData[j].financialInvestment;
+              totalSold += filteredData[j].financialInvestment;
             }
             streaks.push({
-              start: tradingData[streakStart].date,
-              end: tradingData[i - 1].date,
+              start: filteredData[streakStart].date,
+              end: filteredData[i - 1].date,
               days,
               totalSold,
-              kospiChange: tradingData[i - 1].kospiIndex - tradingData[streakStart].kospiIndex,
+              kospiChange: filteredData[i - 1].kospiIndex - filteredData[streakStart].kospiIndex,
             });
           }
           streakStart = -1;
         }
       }
     }
-    // Handle ongoing streak
-    if (streakStart !== -1) {
-      const days = tradingData.length - streakStart;
-      if (days >= 3) {
-        let totalSold = 0;
-        for (let j = streakStart; j < tradingData.length; j++) {
-          totalSold += tradingData[j].financialInvestment;
-        }
-        streaks.push({
-          start: tradingData[streakStart].date,
-          end: tradingData[tradingData.length - 1].date,
-          days,
-          totalSold,
-          kospiChange: tradingData[tradingData.length - 1].kospiIndex - tradingData[streakStart].kospiIndex,
-        });
-      }
-    }
 
-    return streaks.sort((a, b) => b.days - a.days).slice(0, 15);
-  }, []);
+    // 2. Add Historical Data if range is long enough
+    const currentYear = new Date().getFullYear();
+    const filterHistorical = (years: number) => {
+      return significantHistoricalStreaks.filter(s => {
+        const year = parseInt(s.start.split('-')[0]);
+        return year >= (currentYear - years);
+      });
+    };
+
+    if (streakRange === '1Y') streaks.push(...filterHistorical(1));
+    if (streakRange === '5Y') streaks.push(...filterHistorical(5));
+    if (streakRange === '10Y') streaks.push(...filterHistorical(10));
+    if (streakRange === '20Y') streaks.push(...filterHistorical(20));
+    if (streakRange === '30Y') streaks.push(...significantHistoricalStreaks);
+
+    return streaks.sort((a, b) => {
+      // Sort by date descending
+      return new Date(b.end).getTime() - new Date(a.end).getTime();
+    });
+  }, [tradingData, streakRange]);
 
   const thresholds = Object.values(riskThresholds);
 
@@ -680,10 +696,26 @@ function RiskAnalysis({ tradingData }: { tradingData: DailyTradingData[] }) {
 
       {/* Consecutive Selling Streaks */}
       <div className="bg-gray-900 rounded-xl p-5 border border-gray-800">
-        <h3 className="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
-          <TrendingDown size={16} className="text-red-400" />
-          금융투자 연속 매도 구간 분석 (3일 이상)
-        </h3>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+          <h3 className="text-sm font-semibold text-gray-300 flex items-center gap-2">
+            <TrendingDown size={16} className="text-red-400" />
+            금융투자 연속 매도 구간 분석 (3일 이상)
+          </h3>
+          <div className="flex flex-wrap items-center gap-1 bg-gray-800/50 p-1 rounded-lg">
+            {['7D', '1M', '3M', '6M', '1Y', '5Y', '10Y', '20Y', '30Y'].map((range) => (
+              <button
+                key={range}
+                onClick={() => setStreakRange(range)}
+                className={`px-2.5 py-1 text-[10px] font-bold rounded transition-all ${streakRange === range
+                  ? 'bg-red-600 text-white shadow-lg'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                  }`}
+              >
+                {range}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>

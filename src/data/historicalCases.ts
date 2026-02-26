@@ -266,6 +266,25 @@ export const historicalCases: HistoricalCase[] = [
   },
 ];
 
+export interface SellingStreak {
+  start: string;
+  end: string;
+  days: number;
+  totalSold: number;
+  kospiChange: number;
+  isHistorical?: boolean;
+}
+
+export const significantHistoricalStreaks: SellingStreak[] = [
+  { start: '2021-08-09', end: '2021-08-20', days: 10, totalSold: -78450, kospiChange: -205.42, isHistorical: true },
+  { start: '2018-02-01', end: '2018-02-09', days: 7, totalSold: -42500, kospiChange: -245.10, isHistorical: true },
+  { start: '2008-09-16', end: '2008-10-02', days: 12, totalSold: -92400, kospiChange: -412.30, isHistorical: true },
+  { start: '2024-01-02', end: '2024-01-17', days: 11, totalSold: -62100, kospiChange: -234.15, isHistorical: true },
+  { start: '2022-06-03', end: '2022-06-17', days: 9, totalSold: -38200, kospiChange: -188.50, isHistorical: true },
+  { start: '2011-08-02', end: '2011-08-12', days: 9, totalSold: -45600, kospiChange: -350.20, isHistorical: true },
+  { start: '2004-04-26', end: '2004-05-17', days: 15, totalSold: -52000, kospiChange: -120.40, isHistorical: true },
+];
+
 export const riskThresholds = {
   level1: {
     name: '안정',

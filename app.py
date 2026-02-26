@@ -23,14 +23,14 @@ def fetch_naver_data(window_key):
         headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
         
         # 1. Fetch Price Data
-        price_url = "https://m.stock.naver.com/api/index/KOSPI/price?page=1&pageSize=60"
+        price_url = "https://m.stock.naver.com/api/index/KOSPI/price?page=1&pageSize=120"
         price_res = requests.get(price_url, headers=headers, timeout=10)
         if price_res.status_code != 200:
             return None
         prices = price_res.json()
         
-        # 2. Extract Business Dates (up to 40 days for efficiency)
-        biz_dates = [p["localTradedAt"].replace("-", "") for p in prices[:40]]
+        # 2. Extract Business Dates (up to 100 days for better 6M view)
+        biz_dates = [p["localTradedAt"].replace("-", "") for p in prices[:100]]
         
         # 3. Parallel Fetching for Trend Data
         trend_data = {}
