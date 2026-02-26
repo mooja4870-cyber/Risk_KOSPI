@@ -262,7 +262,7 @@ function Dashboard({ tradingData }: { tradingData: DailyTradingData[] }) {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <SummaryCard
           title="코스피 지수"
           value={latest.kospiIndex.toFixed(2)}
@@ -274,6 +274,12 @@ function Dashboard({ tradingData }: { tradingData: DailyTradingData[] }) {
           value={`${latest.financialInvestment > 0 ? '+' : ''}${latest.financialInvestment.toLocaleString()}억`}
           change={latest.financialInvestment}
           icon={latest.financialInvestment >= 0 ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
+        />
+        <SummaryCard
+          title="기관계 합계"
+          value={`${latest.institution > 0 ? '+' : ''}${latest.institution.toLocaleString()}억`}
+          change={latest.institution}
+          icon={<Briefcase size={20} />}
         />
         <SummaryCard
           title="외국인 순매수"
@@ -298,19 +304,19 @@ function Dashboard({ tradingData }: { tradingData: DailyTradingData[] }) {
             <ComposedChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
               <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#9CA3AF' }} interval={9} />
-              <YAxis yAxisId="left" tick={{ fontSize: 10, fill: '#9CA3AF' }} domain={['auto', 'auto']} />
+              <YAxis yAxisId="left" tick={{ fontSize: 10, fill: '#9CA3AF' }} hide />
               <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10, fill: '#9CA3AF' }} />
               <Tooltip
                 contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151', borderRadius: '8px' }}
                 labelStyle={{ color: '#F3F4F6' }}
               />
               <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Line yAxisId="left" type="monotone" dataKey="kospi" name="코스피" stroke="#60A5FA" dot={false} strokeWidth={2} />
-              <Bar yAxisId="right" dataKey="fi" name="금융투자 순매수(억)">
+              <Bar yAxisId="right" dataKey="fi" name="금융투자 순매수(억)" radius={[2, 2, 0, 0]}>
                 {chartData.map((entry, index) => (
                   <Cell key={index} fill={entry.fi >= 0 ? '#10B981' : '#EF4444'} />
                 ))}
               </Bar>
+              <Line yAxisId="left" type="monotone" dataKey="kospi" name="코스피" stroke="#60A5FA" dot={false} strokeWidth={2} />
               <Line yAxisId="right" type="monotone" dataKey="fiMA10" name="금투 10일 이평" stroke="#F59E0B" dot={false} strokeWidth={2} strokeDasharray="4 2" />
               <ReferenceLine yAxisId="right" y={0} stroke="#6B7280" strokeDasharray="3 3" />
             </ComposedChart>
@@ -321,7 +327,13 @@ function Dashboard({ tradingData }: { tradingData: DailyTradingData[] }) {
         <div className="bg-gray-900 rounded-xl p-5 border border-gray-800">
           <h3 className="text-sm font-semibold text-gray-300 mb-4">주체별 순매수 비교 (최근 60일)</h3>
           <ResponsiveContainer width="100%" height={320}>
-            <BarChart data={chartData} stackOffset="sign">
+            <BarChart data={tradingData.slice(-60).map(d => ({
+              date: d.date.slice(5),
+              individual: d.individual,
+              foreign: d.foreign,
+              institution: d.institution,
+              other: d.otherCorporation
+            }))} stackOffset="sign">
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
               <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#9CA3AF' }} interval={9} />
               <YAxis tick={{ fontSize: 10, fill: '#9CA3AF' }} />
@@ -333,7 +345,8 @@ function Dashboard({ tradingData }: { tradingData: DailyTradingData[] }) {
               <ReferenceLine y={0} stroke="#6B7280" />
               <Bar dataKey="individual" name="개인" fill="#8B5CF6" stackId="a" />
               <Bar dataKey="foreign" name="외국인" fill="#06B6D4" stackId="a" />
-              <Bar dataKey="fi" name="금융투자" fill="#EF4444" stackId="a" />
+              <Bar dataKey="institution" name="기관" fill="#F43F5E" stackId="a" />
+              <Bar dataKey="other" name="기타법인" fill="#10B981" stackId="a" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -489,25 +502,29 @@ function DailyTrading({ tradingData }: { tradingData: DailyTradingData[] }) {
         </div>
       </div>
 
-      <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-x-auto">
-        <table className="w-full text-xs">
+      <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-x-auto shadow-2xl">
+        <table className="w-full text-[11px] border-collapse">
           <thead>
-            <tr className="border-b border-gray-800">
-              <th className="px-3 py-3 text-left text-gray-400 font-medium sticky left-0 bg-gray-900">날짜</th>
-              <th className="px-3 py-3 text-right text-gray-400 font-medium">코스피</th>
-              <th className="px-3 py-3 text-right text-gray-400 font-medium">등락</th>
-              <th className="px-3 py-3 text-right text-purple-400 font-medium">개인</th>
-              <th className="px-3 py-3 text-right text-cyan-400 font-medium">외국인</th>
-              <th className="px-2 py-3 text-center text-gray-600">│</th>
-              <th className="px-3 py-3 text-right font-bold text-red-400">금융투자</th>
-              <th className="px-3 py-3 text-right text-gray-400 font-medium">보험</th>
-              <th className="px-3 py-3 text-right text-gray-400 font-medium">투신</th>
-              <th className="px-3 py-3 text-right text-gray-400 font-medium">은행</th>
-              <th className="px-3 py-3 text-right text-gray-400 font-medium">기타금융</th>
-              <th className="px-3 py-3 text-right text-gray-400 font-medium">연기금</th>
-              <th className="px-2 py-3 text-center text-gray-600">│</th>
-              <th className="px-3 py-3 text-right text-yellow-400 font-medium">연속매도</th>
-              <th className="px-3 py-3 text-right text-orange-400 font-medium">매도비중</th>
+            <tr className="border-b-2 border-gray-800 bg-gray-900/80">
+              <th rowSpan={2} className="px-3 py-3 text-left text-gray-400 font-bold sticky left-0 bg-gray-900 border-r border-gray-800">날짜</th>
+              <th rowSpan={2} className="px-3 py-3 text-right text-gray-400 font-bold border-r border-gray-800">코스피</th>
+              <th rowSpan={2} className="px-3 py-3 text-right text-gray-400 font-bold border-r border-gray-800">등락</th>
+              <th rowSpan={2} className="px-4 py-3 text-right text-purple-400 font-bold border-r border-gray-800 bg-purple-500/5">개인</th>
+              <th rowSpan={2} className="px-4 py-3 text-right text-cyan-400 font-bold border-r border-gray-800 bg-cyan-500/5">외국인</th>
+              <th rowSpan={2} className="px-4 py-3 text-right text-gray-300 font-bold border-r border-gray-800">기관계</th>
+              <th colSpan={6} className="px-3 py-2 text-center text-gray-400 font-bold border-b border-gray-800 border-r border-gray-800 bg-blue-500/5">기관</th>
+              <th rowSpan={2} className="px-4 py-3 text-right text-green-400 font-bold border-r border-gray-800 bg-green-500/5">기타법인</th>
+              <th colSpan={2} className="px-3 py-2 text-center text-orange-400 font-bold border-b border-gray-800 bg-orange-500/5">리스크 지표</th>
+            </tr>
+            <tr className="border-b border-gray-800 bg-gray-900/50">
+              <th className="px-2 py-2 text-right text-gray-400 font-medium bg-red-500/5">금융투자</th>
+              <th className="px-2 py-2 text-right text-gray-400 font-medium">보험</th>
+              <th className="px-2 py-2 text-right text-gray-400 font-medium">투신(사모)</th>
+              <th className="px-2 py-2 text-right text-gray-400 font-medium">은행</th>
+              <th className="px-2 py-2 text-right text-gray-400 font-medium text-[10px]">기타금융기관</th>
+              <th className="px-2 py-2 text-right text-gray-400 font-medium border-r border-gray-800">연기금등</th>
+              <th className="px-2 py-2 text-right text-yellow-400 font-medium">연속매도</th>
+              <th className="px-2 py-2 text-right text-orange-400 font-medium">매도비중</th>
             </tr>
           </thead>
           <tbody>
@@ -521,44 +538,46 @@ function DailyTrading({ tradingData }: { tradingData: DailyTradingData[] }) {
               return (
                 <tr
                   key={d.date}
-                  className={`border-b border-gray-800/50 hover:bg-gray-800/50 transition-colors ${isHeavySelling ? 'bg-red-950/20' : ''
-                    }`}
+                  className={`border-b border-gray-800/50 hover:bg-gray-800/80 transition-all ${isHeavySelling ? 'bg-red-950/20' : ''}`}
                 >
-                  <td className="px-3 py-2.5 font-mono text-gray-300 sticky left-0 bg-gray-900">{d.date}</td>
-                  <td className="px-3 py-2.5 text-right font-mono text-white">{d.kospiIndex.toFixed(2)}</td>
-                  <td className={`px-3 py-2.5 text-right font-mono ${cellColor(d.kospiChange)}`}>
+                  <td className="px-3 py-2.5 font-mono text-gray-500 sticky left-0 bg-gray-950 border-r border-gray-800">{d.date.slice(2)}</td>
+                  <td className="px-3 py-2.5 text-right font-mono text-white border-r border-gray-800">{d.kospiIndex.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                  <td className={`px-3 py-2.5 text-right font-mono border-r border-gray-800 ${cellColor(d.kospiChange)}`}>
                     {formatNum(Math.round(d.kospiChange * 100) / 100)}
                   </td>
-                  <td className={`px-3 py-2.5 text-right font-mono ${cellColor(d.individual)}`}>
+                  <td className={`px-4 py-2.5 text-right font-mono border-r border-gray-800 bg-purple-500/5 ${cellColor(d.individual)}`}>
                     {formatNum(d.individual)}
                   </td>
-                  <td className={`px-3 py-2.5 text-right font-mono ${cellColor(d.foreign)}`}>
+                  <td className={`px-4 py-2.5 text-right font-mono border-r border-gray-800 bg-cyan-500/5 ${cellColor(d.foreign)}`}>
                     {formatNum(d.foreign)}
                   </td>
-                  <td className="px-2 py-2.5 text-center text-gray-700">│</td>
-                  <td className={`px-3 py-2.5 text-right font-mono font-bold ${isHeavySelling ? 'text-red-400 bg-red-950/30' : cellColor(d.financialInvestment)
-                    }`}>
+                  <td className={`px-4 py-2.5 text-right font-mono font-bold border-r border-gray-800 ${cellColor(d.institution)}`}>
+                    {formatNum(d.institution)}
+                  </td>
+                  <td className={`px-2 py-2.5 text-right font-mono bg-red-500/5 ${isHeavySelling ? 'text-red-400 font-bold bg-red-900/30' : cellColor(d.financialInvestment)}`}>
                     {formatNum(d.financialInvestment)}
                   </td>
-                  <td className={`px-3 py-2.5 text-right font-mono ${cellColor(d.insurance)}`}>
+                  <td className={`px-2 py-2.5 text-right font-mono ${cellColor(d.insurance)}`}>
                     {formatNum(d.insurance)}
                   </td>
-                  <td className={`px-3 py-2.5 text-right font-mono ${cellColor(d.investmentTrust)}`}>
+                  <td className={`px-2 py-2.5 text-right font-mono ${cellColor(d.investmentTrust)}`}>
                     {formatNum(d.investmentTrust)}
                   </td>
-                  <td className={`px-3 py-2.5 text-right font-mono ${cellColor(d.bank)}`}>
+                  <td className={`px-2 py-2.5 text-right font-mono ${cellColor(d.bank)}`}>
                     {formatNum(d.bank)}
                   </td>
-                  <td className={`px-3 py-2.5 text-right font-mono ${cellColor(d.otherFinancial)}`}>
+                  <td className={`px-2 py-2.5 text-right font-mono text-[10px] ${cellColor(d.otherFinancial)}`}>
                     {formatNum(d.otherFinancial)}
                   </td>
-                  <td className={`px-3 py-2.5 text-right font-mono ${cellColor(d.pension)}`}>
+                  <td className={`px-2 py-2.5 text-right font-mono border-r border-gray-800 ${cellColor(d.pension)}`}>
                     {formatNum(d.pension)}
                   </td>
-                  <td className="px-2 py-2.5 text-center text-gray-700">│</td>
-                  <td className="px-3 py-2.5 text-right">
+                  <td className={`px-4 py-2.5 text-right font-mono border-r border-gray-800 bg-green-500/5 ${cellColor(d.otherCorporation)}`}>
+                    {formatNum(d.otherCorporation)}
+                  </td>
+                  <td className="px-3 py-2.5 text-right border-r border-gray-900 bg-orange-500/5">
                     {isSelling ? (
-                      <span className={`px-2 py-0.5 rounded text-xs font-bold ${consecutive >= 10 ? 'bg-red-600 text-white' :
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${consecutive >= 10 ? 'bg-red-600 text-white shadow-lg' :
                         consecutive >= 7 ? 'bg-orange-600 text-white' :
                           consecutive >= 5 ? 'bg-yellow-600 text-white' :
                             consecutive >= 3 ? 'bg-blue-600 text-white' :
@@ -570,10 +589,10 @@ function DailyTrading({ tradingData }: { tradingData: DailyTradingData[] }) {
                       <span className="text-gray-600">-</span>
                     )}
                   </td>
-                  <td className="px-3 py-2.5 text-right">
+                  <td className="px-3 py-2.5 text-right bg-orange-500/5">
                     {isSelling ? (
-                      <span className={`font-mono ${sellRatio >= 40 ? 'text-red-400 font-bold' :
-                        sellRatio >= 30 ? 'text-orange-400' :
+                      <span className={`font-mono text-xs ${sellRatio >= 40 ? 'text-red-400 font-bold underline' :
+                        sellRatio >= 30 ? 'text-orange-400 font-bold' :
                           sellRatio >= 20 ? 'text-yellow-400' :
                             'text-gray-400'
                         }`}>
