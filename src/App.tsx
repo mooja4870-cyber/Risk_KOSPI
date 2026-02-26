@@ -1,6 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import {
-  tradingData as fallbackTradingData,
   calculateRisk,
   getConsecutiveSellingDays,
   getFISellRatio,
@@ -47,29 +46,7 @@ export default function App() {
       setRefreshIntervalMs(live.meta.pollingIntervalMs);
       setLoadError(null);
     } catch {
-      setLoadError('실시간 수급 데이터 갱신에 실패했습니다. 네트워크 또는 데이터 소스를 확인해 주세요.');
-
-      if (isInitialLoad) {
-        setTradingData(fallbackTradingData);
-        setDataMeta({
-          asOfKst: new Intl.DateTimeFormat('ko-KR', {
-            timeZone: 'Asia/Seoul',
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: false,
-          }).format(new Date()),
-          latestTradingDate: fallbackTradingData[fallbackTradingData.length - 1]?.date ?? '-',
-          source: 'Local fallback dataset',
-          note: '실시간 API 연결 실패로 대체 데이터를 사용 중입니다.',
-          usingFallback: true,
-          pollingIntervalMs: 60_000,
-        });
-      }
-
+      setLoadError('실시간 수급 데이터 갱신에 실패했습니다. 실시간 API 재연결을 시도합니다.');
       setRefreshIntervalMs(60_000);
     } finally {
       if (isInitialLoad) {
@@ -106,7 +83,7 @@ export default function App() {
               </div>
             </div>
             <div className="text-right text-xs text-gray-500">
-              <p>{dataMeta?.usingFallback ? '오프라인 대체 데이터 모드' : `실시간 기준: ${dataMeta?.asOfKst ?? '-'}`}</p>
+              <p>{`실시간 기준: ${dataMeta?.asOfKst ?? '-'}`}</p>
               <p className="mt-0.5 text-gray-600">최신 거래일: {dataMeta?.latestTradingDate ?? '-'}</p>
             </div>
           </div>

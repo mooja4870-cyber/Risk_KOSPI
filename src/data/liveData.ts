@@ -40,7 +40,6 @@ export interface LiveDataMeta {
   latestTradingDate: string;
   source: string;
   note: string;
-  usingFallback: boolean;
   pollingIntervalMs: number;
 }
 
@@ -269,7 +268,6 @@ export async function fetchLiveKOSPITradingData(days = 60): Promise<LiveDataResu
     latestTradingDate,
     source: 'Naver Finance Mobile API',
     note: '오늘자 코스피 지수는 실시간 폴링 값으로 보강되며, 수급은 기관계 순매수를 금융투자 대체지표로 사용합니다.',
-    usingFallback: false,
     pollingIntervalMs,
   };
 
