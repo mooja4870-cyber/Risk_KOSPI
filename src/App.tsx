@@ -24,6 +24,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [tradingData, setTradingData] = useState<DailyTradingData[]>([]);
   const [dataMeta, setDataMeta] = useState<LiveDataMeta | null>(null);
+  const [refreshIntervalMs, setRefreshIntervalMs] = useState(60_000);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -43,6 +44,7 @@ export default function App() {
       const live = await fetchLiveKOSPITradingData(60);
       setTradingData(live.tradingData);
       setDataMeta(live.meta);
+      setRefreshIntervalMs(live.meta.pollingIntervalMs);
       setLoadError(null);
     } catch {
       setLoadError('실시간 수급 데이터 갱신에 실패했습니다. 네트워크 또는 데이터 소스를 확인해 주세요.');
@@ -64,8 +66,11 @@ export default function App() {
           source: 'Local fallback dataset',
           note: '실시간 API 연결 실패로 대체 데이터를 사용 중입니다.',
           usingFallback: true,
+          pollingIntervalMs: 60_000,
         });
       }
+
+      setRefreshIntervalMs(60_000);
     } finally {
       if (isInitialLoad) {
         setIsLoading(false);
@@ -75,12 +80,15 @@ export default function App() {
 
   useEffect(() => {
     void refreshData(true);
+  }, [refreshData]);
+
+  useEffect(() => {
     const intervalId = window.setInterval(() => {
       void refreshData(false);
-    }, 60_000);
+    }, refreshIntervalMs);
 
     return () => window.clearInterval(intervalId);
-  }, [refreshData]);
+  }, [refreshData, refreshIntervalMs]);
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">

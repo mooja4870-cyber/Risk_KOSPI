@@ -18,6 +18,19 @@ interface NaverIndexTrend {
 
 interface PollingResponse {
   result?: {
+    pollingInterval?: number;
+    areas?: {
+      name?: string;
+      datas?: {
+        cd?: string;
+        nv?: number;
+        cv?: number;
+        cr?: number;
+        ov?: number;
+        hv?: number;
+        lv?: number;
+      }[];
+    }[];
     time?: number;
   };
 }
@@ -28,6 +41,7 @@ export interface LiveDataMeta {
   source: string;
   note: string;
   usingFallback: boolean;
+  pollingIntervalMs: number;
 }
 
 export interface LiveDataResult {
@@ -38,6 +52,7 @@ export interface LiveDataResult {
 const NAVER_API_PREFIX = '/naver-api';
 const POLLING_API_PREFIX = '/polling-api';
 const MAX_PAGE_SIZE = 60;
+const FALLBACK_POLLING_INTERVAL_MS = 60_000;
 
 function parseNumeric(value: string | number | undefined): number {
   if (typeof value === 'number') {
@@ -54,6 +69,20 @@ function toBizDate(date: string): string {
   return date.replace(/-/g, '');
 }
 
+function getKstDateString(date: Date): string {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+
+  const year = parts.find((part) => part.type === 'year')?.value ?? '1970';
+  const month = parts.find((part) => part.type === 'month')?.value ?? '01';
+  const day = parts.find((part) => part.type === 'day')?.value ?? '01';
+  return `${year}-${month}-${day}`;
+}
+
 function formatKstDateTime(date: Date): string {
   return new Intl.DateTimeFormat('ko-KR', {
     timeZone: 'Asia/Seoul',
@@ -67,8 +96,13 @@ function formatKstDateTime(date: Date): string {
   }).format(date);
 }
 
+function withCacheBust(url: string): string {
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}_ts=${Date.now()}`;
+}
+
 async function fetchJson<T>(url: string): Promise<T> {
-  const response = await fetch(url);
+  const response = await fetch(withCacheBust(url), { cache: 'no-store' });
   if (!response.ok) {
     throw new Error(`API request failed: ${response.status} ${response.statusText}`);
   }
@@ -152,32 +186,91 @@ function buildTradingRows(prices: NaverIndexPrice[], trendMap: Map<string, Naver
   return rows.sort((a, b) => a.date.localeCompare(b.date));
 }
 
+function parseRealtimeIndexValue(value: number | undefined): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return 0;
+  return value / 100;
+}
+
+function applyRealtimeTodayRow(
+  rows: DailyTradingData[],
+  trendMap: Map<string, NaverIndexTrend>,
+  polling: PollingResponse | undefined,
+): DailyTradingData[] {
+  const realtime = polling?.result?.areas
+    ?.find((area) => area?.name === 'SERVICE_INDEX')
+    ?.datas?.find((item) => item?.cd === 'KOSPI');
+  if (!realtime || typeof realtime.nv !== 'number') {
+    return rows;
+  }
+
+  const asOfMs = polling?.result?.time;
+  const todayDate = getKstDateString(typeof asOfMs === 'number' ? new Date(asOfMs) : new Date());
+  const todayBizDate = toBizDate(todayDate);
+  const todayTrend = trendMap.get(todayBizDate);
+
+  const individual = Math.round(parseNumeric(todayTrend?.personalValue));
+  const foreign = Math.round(parseNumeric(todayTrend?.foreignValue));
+  const institution = Math.round(parseNumeric(todayTrend?.institutionalValue));
+  const financialInvestment = institution;
+  const otherCorporation = -(individual + foreign + institution);
+
+  const realtimeRow: DailyTradingData = {
+    date: todayDate,
+    kospiIndex: parseRealtimeIndexValue(realtime.nv),
+    kospiChange: parseRealtimeIndexValue(realtime.cv),
+    individual,
+    foreign,
+    institution,
+    financialInvestment,
+    insurance: 0,
+    investmentTrust: 0,
+    bank: 0,
+    otherFinancial: 0,
+    pension: 0,
+    otherCorporation,
+  };
+
+  const existingIndex = rows.findIndex((row) => row.date === todayDate);
+  if (existingIndex >= 0) {
+    const updated = [...rows];
+    updated[existingIndex] = realtimeRow;
+    return updated.sort((a, b) => a.date.localeCompare(b.date));
+  }
+
+  return [...rows, realtimeRow].sort((a, b) => a.date.localeCompare(b.date));
+}
+
 export async function fetchLiveKOSPITradingData(days = 60): Promise<LiveDataResult> {
   const prices = await fetchPriceData(days);
   if (prices.length === 0) {
     throw new Error('No price data returned from source API.');
   }
 
+  const kstTodayDate = getKstDateString(new Date());
   const bizDates = prices.map((p) => toBizDate(p.localTradedAt));
-  const trendMap = await fetchTrendMap(bizDates);
-  const tradingData = buildTradingRows(prices, trendMap);
+  const [trendMap, polling] = await Promise.all([
+    fetchTrendMap([...bizDates, toBizDate(kstTodayDate)]),
+    fetchJson<PollingResponse>(`${POLLING_API_PREFIX}/api/realtime?query=SERVICE_INDEX:KOSPI`).catch(
+      () => undefined,
+    ),
+  ]);
+  const baseRows = buildTradingRows(prices, trendMap);
+  const tradingData = applyRealtimeTodayRow(baseRows, trendMap, polling);
 
-  let pollingTime: number | undefined;
-  try {
-    const polling = await fetchJson<PollingResponse>(
-      `${POLLING_API_PREFIX}/api/realtime?query=SERVICE_INDEX:KOSPI`,
-    );
-    pollingTime = polling?.result?.time;
-  } catch {
-    pollingTime = undefined;
-  }
+  const pollingTime = polling?.result?.time;
+  const latestTradingDate = tradingData[tradingData.length - 1]?.date ?? prices[0].localTradedAt;
+  const pollingIntervalMs =
+    typeof polling?.result?.pollingInterval === 'number'
+      ? Math.max(10_000, polling.result.pollingInterval)
+      : FALLBACK_POLLING_INTERVAL_MS;
 
   const meta: LiveDataMeta = {
     asOfKst: formatKstDateTime(typeof pollingTime === 'number' ? new Date(pollingTime) : new Date()),
-    latestTradingDate: prices[0].localTradedAt,
+    latestTradingDate,
     source: 'Naver Finance Mobile API',
-    note: '금융투자 세부 항목 부재로 기관계 순매수를 금융투자 대체지표로 사용합니다.',
+    note: '오늘자 코스피 지수는 실시간 폴링 값으로 보강되며, 수급은 기관계 순매수를 금융투자 대체지표로 사용합니다.',
     usingFallback: false,
+    pollingIntervalMs,
   };
 
   return { tradingData, meta };
