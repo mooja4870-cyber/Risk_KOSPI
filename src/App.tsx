@@ -927,7 +927,10 @@ function HistoricalComparison() {
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
             <XAxis type="number" tick={{ fontSize: 10, fill: '#9CA3AF' }} domain={[0, 60]} />
             <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: '#9CA3AF' }} width={130} />
-            <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151', borderRadius: '8px' }} />
+            <Tooltip
+              contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151', borderRadius: '8px' }}
+              itemStyle={{ color: '#FBBF24', fontWeight: 'bold' }}
+            />
             <Bar dataKey="decline" name="하락률(%)">
               {historicalCases.map((c, i) => (
                 <Cell
