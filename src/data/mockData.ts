@@ -15,63 +15,53 @@ export interface DailyTradingData {
 }
 
 // Generate realistic mock data simulating various market conditions
+// Generate realistic mock data simulating various market conditions
 function generateMockData(): DailyTradingData[] {
   const data: DailyTradingData[] = [];
-
   let kospi = 2400;
 
   // Define long-term cycles
   const phases = [
-    { name: '2000s_IT_Bubble', days: 800, fiBias: 500, kospiDrift: 0.1, volatility: 30 },
-    { name: '2004_Growth', days: 1000, fiBias: 800, kospiDrift: 0.8, volatility: 15 },
-    { name: '2008_Crisis', days: 500, fiBias: -1500, kospiDrift: -2.5, volatility: 50 },
-    { name: '2010_Recovery', days: 1200, fiBias: 600, kospiDrift: 1.2, volatility: 20 },
-    { name: '2015_Stagnation', days: 1500, fiBias: -200, kospiDrift: 0.05, volatility: 10 },
-    { name: '2020_Pandemic', days: 500, fiBias: 2000, kospiDrift: 3.5, volatility: 60 },
-    { name: '2022_Correction', days: 600, fiBias: -1200, kospiDrift: -1.8, volatility: 25 },
-    { name: '2024_Current', days: 1500, fiBias: -800, kospiDrift: -0.5, volatility: 20 },
+    { name: '2000s_IT_Bubble', days: 800, fiBias: 500, kospiDrift: 0.05, volatility: 25 },
+    { name: '2004_Growth', days: 1000, fiBias: 800, kospiDrift: 0.15, volatility: 12 },
+    { name: '2008_Crisis', days: 500, fiBias: -1500, kospiDrift: -0.8, volatility: 45 },
+    { name: '2010_Recovery', days: 1200, fiBias: 600, kospiDrift: 0.2, volatility: 18 },
+    { name: '2015_Stagnation', days: 1500, fiBias: -200, kospiDrift: 0.01, volatility: 8 },
+    { name: '2020_Pandemic', days: 500, fiBias: 1800, kospiDrift: 1.2, volatility: 55 },
+    { name: '2022_Correction', days: 600, fiBias: -1200, kospiDrift: -0.6, volatility: 22 },
+    { name: '2024_Current', days: 1500, fiBias: -600, kospiDrift: -0.1, volatility: 15 },
   ];
 
-  // Calculate total trading days needed to reach today
-  const totalDays = phases.reduce((acc, p) => acc + p.days, 0);
-
-  // Work backwards from today to find start date
-  const endDate = new Date();
-
-  // Roughly 250 trading days per year, but we'll just step backward
-  let currentTargetDate = new Date(endDate);
-  let tradingDaysCounted = 0;
-  const targetDates: Date[] = [];
-
-  while (tradingDaysCounted < totalDays) {
-    const dow = currentTargetDate.getDay();
+  const totalDaysNeeded = phases.reduce((acc, p) => acc + p.days, 0);
+  
+  // 1. Generate trading dates backwards from today
+  const targetDates: string[] = [];
+  let current = new Date();
+  while (targetDates.length < totalDaysNeeded) {
+    const dow = current.getDay();
     if (dow !== 0 && dow !== 6) {
-      targetDates.push(new Date(currentTargetDate));
-      tradingDaysCounted++;
+      const yStr = current.getFullYear();
+      const mStr = String(current.getMonth() + 1).padStart(2, '0');
+      const dStr = String(current.getDate()).padStart(2, '0');
+      targetDates.push(`${yStr}-${mStr}-${dStr}`);
     }
-    currentTargetDate.setDate(currentTargetDate.getDate() - 1);
+    current.setDate(current.getDate() - 1);
   }
-
-  // Revert for chronological generation
   targetDates.reverse();
 
-  let globalDayIdx = 0;
+  let globalIdx = 0;
   for (const phase of phases) {
     for (let i = 0; i < phase.days; i++) {
-      const currentDate = targetDates[globalDayIdx];
-      if (!currentDate) break;
+      const dateStr = targetDates[globalIdx++];
+      if (!dateStr) break;
 
       const drift = phase.kospiDrift;
       const vol = phase.volatility;
       const noise = () => (Math.random() - 0.5) * 2;
-      const bigNoise = () => (Math.random() - 0.5) * vol * 20;
+      const bigNoise = () => (Math.random() - 0.5) * vol * 15;
 
       let fi = phase.fiBias + bigNoise();
-
-      // Create some streaks
-      if (fi < 0 && Math.random() > 0.4) {
-        fi -= Math.random() * 800;
-      }
+      if (fi < 0 && Math.random() > 0.45) fi -= Math.random() * 1000;
 
       const individual = -fi * 0.4 + bigNoise();
       const foreignInv = -fi * 0.3 + bigNoise();
@@ -84,12 +74,12 @@ function generateMockData(): DailyTradingData[] {
 
       const institution = fi + insurance + investmentTrust + bank + otherFinancial + pension;
 
-      const kospiChange = drift + noise() * vol;
+      const kospiChange = drift + noise() * (vol / 10); // Scale noise so it's not wild
       kospi += kospiChange;
-      kospi = Math.max(kospi, 500);
-      kospi = Math.min(kospi, 3500);
-
-      const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
+      
+      // Keep KOSPI in a sane range (roughly 500 to 3300)
+      if (kospi > 3300) kospi = 3300 - Math.random() * 50;
+      if (kospi < 500) kospi = 500 + Math.random() * 50;
 
       data.push({
         date: dateStr,
@@ -106,8 +96,6 @@ function generateMockData(): DailyTradingData[] {
         pension: Math.round(pension),
         otherCorporation: Math.round(otherCorp)
       });
-
-      globalDayIdx++;
     }
   }
 

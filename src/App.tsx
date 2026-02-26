@@ -36,42 +36,47 @@ export default function App() {
   ];
 
   const refreshData = useCallback(async (isInitialLoad: boolean) => {
+    if (isInitialLoad) setIsLoading(true);
+    setLoadError(null);
     try {
-      if (isInitialLoad) {
-        setIsLoading(true);
-      }
-
-      const live = await fetchLiveKOSPITradingData(60);
-      setTradingData(live.tradingData);
+      // 1. Fetch live data (CORS-handled by backend inject or relative proxy)
+      const live = await fetchLiveKOSPITradingData(120);
+      
+      // 2. Map existing mock data for the large 30-year window
+      const liveMap = new Map(live.tradingData.map(d => [d.date, d]));
+      const merged = mockTradingData.map(d => liveMap.get(d.date) || d);
+      
+      // 3. Find items in live data that are truly NEW (newer than mock data)
+      const mockDates = new Set(mockTradingData.map(d => d.date));
+      const strictlyNewItems = live.tradingData.filter(d => !mockDates.has(d.date));
+      
+      // 4. Final assembly
+      const finalData = [...merged, ...strictlyNewItems].sort((a, b) => a.date.localeCompare(b.date));
+      
+      setTradingData(finalData);
       setDataMeta(live.meta);
-      setRefreshIntervalMs(live.meta.pollingIntervalMs);
-      setLoadError(null);
-    } catch {
-      setLoadError('실시간 수급 데이터 갱신에 실패했습니다. (CORS/네트워크 오류) 분석용 시뮬레이션 데이터를 표시합니다.');
-
-      // Fallback to Mock Data
-      if (tradingData.length === 0) {
-        setTradingData(mockTradingData.slice(-60));
-        setDataMeta({
-          asOfKst: new Date().toLocaleString('ko-KR'),
-          latestTradingDate: mockTradingData[mockTradingData.length - 1].date,
-          source: '시뮬레이션 데이터 (Fallback)',
-          note: '실시간 API 연결 실패로 사전 정의된 시뮬레이션 데이터를 불러왔습니다.',
-          pollingIntervalMs: 600_000
-        });
-      }
-
-      setRefreshIntervalMs(60_000);
+      setRefreshIntervalMs(live.meta.pollingIntervalMs || 600000);
+    } catch (err) {
+      console.error('Systemic Refresh Error:', err);
+      // Fail safely to mock data
+      setTradingData(mockTradingData);
+      setLoadError('실시간 수급 데이터 통신 중 오류가 발생하여 시뮬레이션 데이터를 표시합니다.');
+      
+      setDataMeta(prev => prev || {
+        asOfKst: formatKstDateTime(new Date()),
+        latestTradingDate: mockTradingData[mockTradingData.length - 1]?.date ?? 'Unknown',
+        source: '데이터 소스: 시뮬레이션 데이터',
+        note: '실시간 연결 장애 시 과거 트렌드 분석을 위해 생성된 데이터입니다.',
+        pollingIntervalMs: 300000
+      });
     } finally {
-      if (isInitialLoad) {
-        setIsLoading(false);
-      }
+      if (isInitialLoad) setIsLoading(false);
     }
-  }, [tradingData.length]);
+  }, [mockTradingData]);
 
   useEffect(() => {
     void refreshData(true);
-  }, []); // Run only once on mount
+  }, [refreshData]);
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
@@ -388,6 +393,32 @@ function DailyTrading({ tradingData }: { tradingData: DailyTradingData[] }) {
   const [page, setPage] = useState(0);
   const [dataRange, setDataRange] = useState<string>('1M');
   const [pageSize, setPageSize] = useState(30);
+  const [streakRange, setStreakRange] = useState<string>('6M'); // New state for streak range
+
+  const riskTimeline = useMemo(() => {
+    let count = 120;
+    if (streakRange === '7D') count = 7;
+    else if (streakRange === '1M') count = 20;
+    else if (streakRange === '3M') count = 60;
+    else if (streakRange === '6M') count = 120;
+    else if (streakRange === '1Y') count = 250;
+    else if (streakRange === '5Y') count = 1250;
+    else if (streakRange === '10Y') count = 2500;
+    else if (streakRange === '20Y') count = 5000;
+    else if (streakRange === '30Y') count = 7500;
+
+    return tradingData.slice(-count).map((d, i, arr) => {
+      const r = calculateRisk(arr, i);
+      return {
+        date: d.date,
+        displayDate: d.date.slice(5),
+        level: r.level,
+        kospi: d.kospiIndex,
+        fi: d.financialInvestment,
+        consecutiveDays: r.consecutiveSellDays,
+      };
+    });
+  }, [tradingData, streakRange]);
 
   const filteredData = useMemo(() => {
     let count = 30;
@@ -607,19 +638,31 @@ function DailyTrading({ tradingData }: { tradingData: DailyTradingData[] }) {
 function RiskAnalysis({ tradingData }: { tradingData: DailyTradingData[] }) {
   const [streakRange, setStreakRange] = useState<string>('3M');
 
-  // Compute risk timeline
+  // Compute risk timeline reactive to range
   const riskTimeline = useMemo(() => {
-    return tradingData.map((d, i) => {
-      const r = calculateRisk(tradingData, i);
+    let count = 60;
+    if (streakRange === '7D') count = 7;
+    else if (streakRange === '1M') count = 20;
+    else if (streakRange === '3M') count = 60;
+    else if (streakRange === '6M') count = 120;
+    else if (streakRange === '1Y') count = 250;
+    else if (streakRange === '5Y') count = 1250;
+    else if (streakRange === '10Y') count = 2500;
+    else if (streakRange === '20Y') count = 5000;
+    else if (streakRange === '30Y') count = 7500;
+
+    return tradingData.slice(-count).map((d, i, arr) => {
+      const r = calculateRisk(arr, i);
       return {
-        date: d.date.slice(5),
+        date: d.date,
+        displayDate: d.date.length > 7 ? d.date.slice(5) : d.date,
         level: r.level,
         kospi: d.kospiIndex,
         fi: d.financialInvestment,
         consecutiveDays: r.consecutiveSellDays,
       };
-    }).slice(-120);
-  }, [tradingData]);
+    });
+  }, [tradingData, streakRange]);
 
   // Streak analysis with range filtering
   const streakAnalysis = useMemo(() => {
@@ -722,17 +765,27 @@ function RiskAnalysis({ tradingData }: { tradingData: DailyTradingData[] }) {
 
       {/* Risk Level Timeline */}
       <div className="bg-gray-900 rounded-xl p-5 border border-gray-800">
-        <h3 className="text-sm font-semibold text-gray-300 mb-4">리스크 레벨 변화 추이 (최근 120일)</h3>
+        <h3 className="text-sm font-semibold text-gray-300 mb-4 flex items-center justify-between">
+          <span>리스크 레벨 변화 추이 ({streakRange})</span>
+          <span className="text-[10px] text-gray-500 font-normal">※ {riskTimeline.length} 거래일 분석됨</span>
+        </h3>
         <ResponsiveContainer width="100%" height={300}>
           <ComposedChart data={riskTimeline}>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-            <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#9CA3AF' }} interval={19} />
+            <XAxis 
+              dataKey="displayDate" 
+              tick={{ fontSize: 10, fill: '#9CA3AF' }} 
+              interval={riskTimeline.length > 500 ? 500 : riskTimeline.length > 150 ? 30 : 5} 
+            />
             <YAxis yAxisId="left" domain={[0, 5]} ticks={[1, 2, 3, 4, 5]} tick={{ fontSize: 10, fill: '#9CA3AF' }} />
             <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10, fill: '#9CA3AF' }} domain={['auto', 'auto']} />
-            <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151', borderRadius: '8px' }} />
+            <Tooltip 
+              labelStyle={{ color: '#9CA3AF' }}
+              contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151', borderRadius: '8px' }} 
+            />
             <Legend wrapperStyle={{ fontSize: 11 }} />
             <Area yAxisId="left" type="stepAfter" dataKey="level" name="리스크 레벨" fill="#EF444430" stroke="#EF4444" strokeWidth={2} />
-            <Line yAxisId="right" type="monotone" dataKey="kospi" name="코스피" stroke="#60A5FA" dot={false} strokeWidth={2} />
+            <Line yAxisId="right" type="monotone" dataKey="kospi" name="코스피" stroke="#60A5FA" dot={false} strokeWidth={1} />
             <ReferenceLine yAxisId="left" y={4} stroke="#EA580C" strokeDasharray="3 3" label={{ value: '위험', fill: '#EA580C', fontSize: 10 }} />
             <ReferenceLine yAxisId="left" y={3} stroke="#F59E0B" strokeDasharray="3 3" label={{ value: '주의', fill: '#F59E0B', fontSize: 10 }} />
           </ComposedChart>
