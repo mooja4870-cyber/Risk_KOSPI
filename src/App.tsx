@@ -15,10 +15,23 @@ import {
 } from 'recharts';
 import {
   AlertTriangle, TrendingDown, TrendingUp, Activity, Shield,
-  BarChart3, History, Eye, ChevronDown, ChevronUp, Info
+  BarChart3, History, Eye, ChevronDown, ChevronUp, Info, Briefcase
 } from 'lucide-react';
 
 type TabType = 'dashboard' | 'daily' | 'risk' | 'historical';
+
+function formatKstDateTime(date: Date): string {
+  return new Intl.DateTimeFormat('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).format(date);
+}
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
@@ -406,32 +419,6 @@ function DailyTrading({ tradingData }: { tradingData: DailyTradingData[] }) {
   const [page, setPage] = useState(0);
   const [dataRange, setDataRange] = useState<string>('1M');
   const [pageSize, setPageSize] = useState(30);
-  const [streakRange, setStreakRange] = useState<string>('6M'); // New state for streak range
-
-  const riskTimeline = useMemo(() => {
-    let count = 120;
-    if (streakRange === '7D') count = 7;
-    else if (streakRange === '1M') count = 20;
-    else if (streakRange === '3M') count = 60;
-    else if (streakRange === '6M') count = 120;
-    else if (streakRange === '1Y') count = 250;
-    else if (streakRange === '5Y') count = 1250;
-    else if (streakRange === '10Y') count = 2500;
-    else if (streakRange === '20Y') count = 5000;
-    else if (streakRange === '30Y') count = 7500;
-
-    return tradingData.slice(-count).map((d, i, arr) => {
-      const r = calculateRisk(arr, i);
-      return {
-        date: d.date,
-        displayDate: d.date.slice(5),
-        level: r.level,
-        kospi: d.kospiIndex,
-        fi: d.financialInvestment,
-        consecutiveDays: r.consecutiveSellDays,
-      };
-    });
-  }, [tradingData, streakRange]);
 
   const filteredData = useMemo(() => {
     let count = 30;
