@@ -4,6 +4,7 @@ import {
   getConsecutiveSellingDays,
   getFISellRatio,
   type DailyTradingData,
+  tradingData as mockTradingData
 } from './data/mockData';
 import { historicalCases, riskThresholds } from './data/historicalCases';
 import { fetchLiveKOSPITradingData, type LiveDataMeta } from './data/liveData';
@@ -46,18 +47,31 @@ export default function App() {
       setRefreshIntervalMs(live.meta.pollingIntervalMs);
       setLoadError(null);
     } catch {
-      setLoadError('실시간 수급 데이터 갱신에 실패했습니다. 실시간 API 재연결을 시도합니다.');
+      setLoadError('실시간 수급 데이터 갱신에 실패했습니다. (CORS/네트워크 오류) 분석용 시뮬레이션 데이터를 표시합니다.');
+
+      // Fallback to Mock Data
+      if (tradingData.length === 0) {
+        setTradingData(mockTradingData.slice(-60));
+        setDataMeta({
+          asOfKst: new Date().toLocaleString('ko-KR'),
+          latestTradingDate: mockTradingData[mockTradingData.length - 1].date,
+          source: '시뮬레이션 데이터 (Fallback)',
+          note: '실시간 API 연결 실패로 사전 정의된 시뮬레이션 데이터를 불러왔습니다.',
+          pollingIntervalMs: 600_000
+        });
+      }
+
       setRefreshIntervalMs(60_000);
     } finally {
       if (isInitialLoad) {
         setIsLoading(false);
       }
     }
-  }, []);
+  }, [tradingData.length]);
 
   useEffect(() => {
     void refreshData(true);
-  }, [refreshData]);
+  }, []); // Run only once on mount
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
@@ -73,13 +87,13 @@ export default function App() {
       <header className="bg-gray-900 border-b border-gray-800 sticky top-0 z-50">
         <div className="max-w-[1400px] mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-500 rounded-lg flex items-center justify-center">
-                <Activity size={22} className="text-white" />
+            <div className="flex items-center gap-6">
+              <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-orange-500 rounded-2xl flex items-center justify-center">
+                <Activity size={44} className="text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-white">코스피 <span className="text-white" style={{ WebkitTextStroke: '1px #EF4444' }}>금융투자사</span> 매매동향 분석</h1>
-                <p className="text-xs text-gray-400">Financial Investment Flow Risk Analysis System</p>
+                <h1 className="text-4xl font-bold text-white">코스피 <span className="text-white" style={{ WebkitTextStroke: '1px #EF4444' }}>금융투자사</span> 매매동향 분석</h1>
+                <p className="text-2xl text-gray-400 mt-1">Financial Investment Flow Risk Analysis System</p>
               </div>
             </div>
             <div className="text-right text-xs text-gray-500">

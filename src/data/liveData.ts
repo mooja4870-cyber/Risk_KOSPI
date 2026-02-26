@@ -239,37 +239,80 @@ function applyRealtimeTodayRow(
   return [...rows, realtimeRow].sort((a, b) => a.date.localeCompare(b.date));
 }
 
+declare global {
+  interface Window {
+    BACKEND_DATA?: {
+      prices: NaverIndexPrice[];
+      trends: Record<string, NaverIndexTrend>;
+      source: string;
+    };
+  }
+}
+
 export async function fetchLiveKOSPITradingData(days = 60): Promise<LiveDataResult> {
-  const prices = await fetchPriceData(days);
-  if (prices.length === 0) {
-    throw new Error('No price data returned from source API.');
+  // Check for injected backend data first (bypasses CORS in Streamlit)
+  if (window.BACKEND_DATA) {
+    const { prices, trends, source } = window.BACKEND_DATA;
+    const trendMap = new Map<string, NaverIndexTrend>();
+    Object.entries(trends).forEach(([key, val]) => trendMap.set(key, val));
+
+    // Sort prices to ensure chronological order
+    const sortedPrices = [...prices].sort((a, b) => b.localTradedAt.localeCompare(a.localTradedAt)).slice(0, days);
+    const baseRows = buildTradingRows(sortedPrices, trendMap);
+
+    // We don't easily have realtime polling here unless we also fetched it in backend,
+    // but the backend might have included the latest date.
+    const tradingData = baseRows;
+
+    return {
+      tradingData,
+      meta: {
+        asOfKst: formatKstDateTime(new Date()),
+        latestTradingDate: tradingData[tradingData.length - 1]?.date ?? 'Unknown',
+        source: `${source} (Injected)`,
+        note: '이 대시보드는 백엔드에서 직접 데이터를 수신하여 CORS 제한을 우회합니다.',
+        pollingIntervalMs: 300_000, // Longer interval for backend-injected data
+      },
+    };
   }
 
-  const kstTodayDate = getKstDateString(new Date());
-  const bizDates = prices.map((p) => toBizDate(p.localTradedAt));
-  const [trendMap, polling] = await Promise.all([
-    fetchTrendMap([...bizDates, toBizDate(kstTodayDate)]),
-    fetchJson<PollingResponse>(`${POLLING_API_PREFIX}/api/realtime?query=SERVICE_INDEX:KOSPI`).catch(
-      () => undefined,
-    ),
-  ]);
-  const baseRows = buildTradingRows(prices, trendMap);
-  const tradingData = applyRealtimeTodayRow(baseRows, trendMap, polling);
+  // Fallback to direct client-side fetch (works in Vite dev mode with proxy)
+  try {
+    const prices = await fetchPriceData(days);
+    if (prices.length === 0) {
+      throw new Error('No price data returned from source API.');
+    }
 
-  const pollingTime = polling?.result?.time;
-  const latestTradingDate = tradingData[tradingData.length - 1]?.date ?? prices[0].localTradedAt;
-  const pollingIntervalMs =
-    typeof polling?.result?.pollingInterval === 'number'
-      ? Math.max(10_000, polling.result.pollingInterval)
-      : FALLBACK_POLLING_INTERVAL_MS;
+    const kstTodayDate = getKstDateString(new Date());
+    const bizDates = prices.map((p) => toBizDate(p.localTradedAt));
+    const [trendMap, polling] = await Promise.all([
+      fetchTrendMap([...bizDates, toBizDate(kstTodayDate)]),
+      fetchJson<PollingResponse>(`${POLLING_API_PREFIX}/api/realtime?query=SERVICE_INDEX:KOSPI`).catch(
+        () => undefined,
+      ),
+    ]);
+    const baseRows = buildTradingRows(prices, trendMap);
+    const tradingData = applyRealtimeTodayRow(baseRows, trendMap, polling);
 
-  const meta: LiveDataMeta = {
-    asOfKst: formatKstDateTime(typeof pollingTime === 'number' ? new Date(pollingTime) : new Date()),
-    latestTradingDate,
-    source: 'Naver Finance Mobile API',
-    note: '오늘자 코스피 지수는 실시간 폴링 값으로 보강되며, 수급은 기관계 순매수를 금융투자 대체지표로 사용합니다.',
-    pollingIntervalMs,
-  };
+    const pollingTime = polling?.result?.time;
+    const latestTradingDate = tradingData[tradingData.length - 1]?.date ?? prices[0].localTradedAt;
+    const pollingIntervalMs =
+      typeof polling?.result?.pollingInterval === 'number'
+        ? Math.max(10_000, polling.result.pollingInterval)
+        : FALLBACK_POLLING_INTERVAL_MS;
 
-  return { tradingData, meta };
+    const meta: LiveDataMeta = {
+      asOfKst: formatKstDateTime(typeof pollingTime === 'number' ? new Date(pollingTime) : new Date()),
+      latestTradingDate,
+      source: 'Naver Finance Mobile API',
+      note: '오늘자 코스피 지수는 실시간 폴링 값으로 보강되며, 수급은 기관계 순매수를 금융투자 대체지표로 사용합니다.',
+      pollingIntervalMs,
+    };
+
+    return { tradingData, meta };
+  } catch (error) {
+    console.error('Failed to fetch live data:', error);
+    // If everything fails, throw error (or could return mock data here)
+    throw error;
+  }
 }
