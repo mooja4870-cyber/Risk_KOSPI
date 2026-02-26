@@ -937,6 +937,7 @@ function HistoricalComparison() {
                   key={i}
                   fill={selectedCase === c.id ? '#FBBF24' : '#D97706'}
                   cursor="pointer"
+                  onClick={() => { setSelectedCase(c.id); setExpandedCase(c.id); }}
                 />
               ))}
             </Bar>
