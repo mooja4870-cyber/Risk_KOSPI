@@ -821,7 +821,7 @@ function HistoricalComparison() {
                 <td className="px-3 py-2.5 text-right text-green-400 font-mono">{c.peakValue}</td>
                 <td className="px-3 py-2.5 text-right text-red-400 font-mono">{c.troughValue}</td>
                 <td className="px-3 py-2.5 text-right">
-                  <span className="bg-red-600/30 text-red-400 px-2 py-0.5 rounded font-bold">
+                  <span className="bg-yellow-600/20 text-yellow-400 px-2 py-0.5 rounded font-bold">
                     {c.decline}
                   </span>
                 </td>
@@ -855,7 +855,7 @@ function HistoricalComparison() {
               {historicalCases.map((c, i) => (
                 <Cell
                   key={i}
-                  fill={selectedCase === c.id ? '#EF4444' : '#6B7280'}
+                  fill={selectedCase === c.id ? '#FBBF24' : '#D97706'}
                   cursor="pointer"
                 />
               ))}
