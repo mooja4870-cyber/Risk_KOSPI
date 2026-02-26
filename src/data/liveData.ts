@@ -244,7 +244,9 @@ declare global {
     BACKEND_DATA?: {
       prices: NaverIndexPrice[];
       trends: Record<string, NaverIndexTrend>;
+      polling?: PollingResponse;
       source: string;
+      updated_at?: string;
     };
   }
 }
@@ -252,26 +254,29 @@ declare global {
 export async function fetchLiveKOSPITradingData(days = 60): Promise<LiveDataResult> {
   // Check for injected backend data first (bypasses CORS in Streamlit)
   if (window.BACKEND_DATA) {
-    const { prices, trends, source } = window.BACKEND_DATA;
+    const { prices, trends, polling, source, updated_at } = window.BACKEND_DATA;
     const trendMap = new Map<string, NaverIndexTrend>();
     Object.entries(trends).forEach(([key, val]) => trendMap.set(key, val));
 
-    // Sort prices to ensure chronological order
+    // 1. Build base rows from historical prices
     const sortedPrices = [...prices].sort((a, b) => b.localTradedAt.localeCompare(a.localTradedAt)).slice(0, days);
-    const baseRows = buildTradingRows(sortedPrices, trendMap);
+    let tradingData = buildTradingRows(sortedPrices, trendMap);
 
-    // We don't easily have realtime polling here unless we also fetched it in backend,
-    // but the backend might have included the latest date.
-    const tradingData = baseRows;
+    // 2. Supplement with real-time polling data if available
+    if (polling) {
+      tradingData = applyRealtimeTodayRow(tradingData, trendMap, polling);
+    }
+
+    const latestDate = tradingData[tradingData.length - 1]?.date ?? 'Unknown';
 
     return {
       tradingData,
       meta: {
-        asOfKst: formatKstDateTime(new Date()),
-        latestTradingDate: tradingData[tradingData.length - 1]?.date ?? 'Unknown',
+        asOfKst: updated_at || formatKstDateTime(new Date()),
+        latestTradingDate: latestDate,
         source: `${source} (Injected)`,
-        note: '이 대시보드는 백엔드에서 직접 데이터를 수신하여 CORS 제한을 우회합니다.',
-        pollingIntervalMs: 300_000, // Longer interval for backend-injected data
+        note: '이 대시보드는 백엔드에서 직접 전송된 최신 실 시간 데이터를 사용하여 갱신되었습니다.',
+        pollingIntervalMs: 600_000,
       },
     };
   }

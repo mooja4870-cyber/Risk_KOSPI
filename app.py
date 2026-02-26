@@ -17,22 +17,29 @@ def get_current_window():
     window_hour = (now.hour // 6) * 6
     return f"{now.strftime('%Y-%m-%d')}_{window_hour:02d}"
 
-@st.cache_data(ttl=900) # Fallback TTL 15 mins, but window key ensures 6-hour refresh
+@st.cache_data(ttl=900)
 def fetch_naver_data(window_key):
     try:
-        headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Referer": "https://m.stock.naver.com/",
+            "Accept": "application/json, text/plain, */*"
+        }
         
-        # 1. Fetch Price Data
+        # 1. Fetch Price Data (History)
         price_url = "https://m.stock.naver.com/api/index/KOSPI/price?page=1&pageSize=120"
         price_res = requests.get(price_url, headers=headers, timeout=10)
-        if price_res.status_code != 200:
-            return None
-        prices = price_res.json()
+        prices = price_res.json() if price_res.status_code == 200 else []
         
-        # 2. Extract Business Dates (up to 100 days for better 6M view)
+        # 2. Fetch Real-time Polling (for true latest price)
+        polling_url = "https://polling.finance.naver.com/api/realtime?query=SERVICE_INDEX:KOSPI"
+        polling_res = requests.get(polling_url, headers=headers, timeout=5)
+        polling = polling_res.json() if polling_res.status_code == 200 else None
+        
+        # 3. Extract Business Dates (up to 100 days)
         biz_dates = [p["localTradedAt"].replace("-", "") for p in prices[:100]]
         
-        # 3. Parallel Fetching for Trend Data
+        # 4. Parallel Fetching for Trend Data
         trend_data = {}
         def fetch_trend(bdate):
             t_url = f"https://m.stock.naver.com/api/index/KOSPI/trend?bizdate={bdate}"
@@ -52,6 +59,7 @@ def fetch_naver_data(window_key):
         return {
             "prices": prices,
             "trends": trend_data,
+            "polling": polling,
             "source": f"Naver API Pipeline ({window_key})",
             "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }

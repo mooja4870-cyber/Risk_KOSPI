@@ -386,12 +386,27 @@ function SummaryCard({ title, value, change, icon }: { title: string; value: str
    ============================== */
 function DailyTrading({ tradingData }: { tradingData: DailyTradingData[] }) {
   const [page, setPage] = useState(0);
-  const [viewDays, setViewDays] = useState(30);
-  const pageSize = viewDays;
-  const totalPages = Math.ceil(tradingData.length / pageSize);
-  const currentPage = Math.min(Math.max(totalPages - 1 - page, 0), totalPages - 1);
-  const startIdx = currentPage * pageSize;
-  const pageData = tradingData.slice(startIdx, startIdx + pageSize).reverse();
+  const [dataRange, setDataRange] = useState<string>('1M');
+  const [pageSize, setPageSize] = useState(30);
+
+  const filteredData = useMemo(() => {
+    let count = 30;
+    if (dataRange === '7D') count = 7;
+    else if (dataRange === '1M') count = 20;
+    else if (dataRange === '3M') count = 60;
+    else if (dataRange === '6M') count = 120;
+    else if (dataRange === '1Y') count = 250;
+    else if (dataRange === '5Y') count = 1250;
+    else if (dataRange === '10Y') count = 2500;
+    else if (dataRange === '20Y') count = 5000;
+    else if (dataRange === '30Y') count = 7500;
+
+    return tradingData.slice(-count);
+  }, [tradingData, dataRange]);
+
+  const totalPages = Math.ceil(filteredData.length / pageSize);
+  const safePage = Math.min(page, Math.max(0, totalPages - 1));
+  const pageData = [...filteredData].reverse().slice(safePage * pageSize, (safePage + 1) * pageSize);
 
   const formatNum = (n: number) => {
     const sign = n >= 0 ? '+' : '';
@@ -402,19 +417,44 @@ function DailyTrading({ tradingData }: { tradingData: DailyTradingData[] }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold">일자별 주체별 순매수 데이터</h2>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-400">표시 일수:</span>
-          {[20, 30, 50].map(d => (
-            <button
-              key={d}
-              onClick={() => { setViewDays(d); setPage(0); }}
-              className={`px-3 py-1 text-xs rounded ${viewDays === d ? 'bg-red-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
-            >
-              {d}일
-            </button>
-          ))}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-bold">일자별 주체별 순매수 데이터</h2>
+          <p className="text-xs text-gray-500 mt-1">
+            {dataRange.includes('Y') ? '※ 장기 관점에서는 주요 변곡점 및 트렌드 데이터가 표시됩니다.' : '실시간 거래소 수급 데이터'}
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1 bg-gray-800/50 p-1 rounded-lg">
+            {['7D', '1M', '3M', '6M', '1Y', '5Y', '10Y', '20Y', '30Y'].map((range) => (
+              <button
+                key={range}
+                onClick={() => { setDataRange(range); setPage(0); }}
+                className={`px-2 py-1 text-[10px] font-bold rounded transition-all ${dataRange === range
+                  ? 'bg-red-600 text-white shadow-lg'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                  }`}
+              >
+                {range}
+              </button>
+            ))}
+          </div>
+
+          <div className="h-6 w-[1px] bg-gray-700 hidden sm:block" />
+
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] text-gray-500 uppercase tracking-wider font-bold">Rows:</span>
+            {[30, 50, 100].map(s => (
+              <button
+                key={s}
+                onClick={() => { setPageSize(s); setPage(0); }}
+                className={`w-8 h-6 flex items-center justify-center text-[10px] rounded font-bold ${pageSize === s ? 'bg-gray-700 text-white' : 'text-gray-500 hover:text-gray-300'}`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -520,26 +560,31 @@ function DailyTrading({ tradingData }: { tradingData: DailyTradingData[] }) {
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-center gap-2">
-        <button
-          onClick={() => setPage(Math.min(page + 1, totalPages - 1))}
-          disabled={page >= totalPages - 1}
-          className="px-3 py-1.5 text-xs bg-gray-800 rounded hover:bg-gray-700 disabled:opacity-30"
-        >
-          ← 이전
-        </button>
-        <span className="text-xs text-gray-400">
-          {tradingData.length - (currentPage * pageSize + pageSize) + 1}~{tradingData.length - currentPage * pageSize}
-          / {tradingData.length}일
-        </span>
-        <button
-          onClick={() => setPage(Math.max(page - 1, 0))}
-          disabled={page <= 0}
-          className="px-3 py-1.5 text-xs bg-gray-800 rounded hover:bg-gray-700 disabled:opacity-30"
-        >
-          다음 →
-        </button>
-      </div>
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-4">
+          <button
+            onClick={() => setPage(p => Math.max(0, p - 1))}
+            disabled={safePage <= 0}
+            className="px-3 py-1.5 text-xs bg-gray-800 rounded hover:bg-gray-700 disabled:opacity-30 transition-colors"
+          >
+            ← 앞페이지
+          </button>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-white">
+              {safePage + 1}
+            </span>
+            <span className="text-xs text-gray-500">/ {totalPages} 페이지</span>
+            <span className="text-[10px] text-gray-600 ml-2">({filteredData.length}일 중)</span>
+          </div>
+          <button
+            onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+            disabled={safePage >= totalPages - 1}
+            className="px-3 py-1.5 text-xs bg-gray-800 rounded hover:bg-gray-700 disabled:opacity-30 transition-colors"
+          >
+            뒷페이지 →
+          </button>
+        </div>
+      )}
 
       {/* Legend */}
       <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">

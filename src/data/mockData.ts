@@ -17,54 +17,60 @@ export interface DailyTradingData {
 // Generate realistic mock data simulating various market conditions
 function generateMockData(): DailyTradingData[] {
   const data: DailyTradingData[] = [];
-  
-  // Phase 1: Gradual rise with financial investment buying (2024-01 to 2024-06)
-  // Phase 2: Peak with heavy financial investment buying (2024-07 to 2024-09)
-  // Phase 3: Financial investment selling begins (2024-10 to 2024-12)
-  // Phase 4: Acceleration of selling (2025-01 to 2025-03)
-  // Phase 5: Current situation (2025-04 to 2025-06)
-  
-  let kospi = 2580;
-  const startDate = new Date('2024-01-02');
-  
+
+  let kospi = 2400;
+
+  // Define long-term cycles
   const phases = [
-    { days: 120, trend: 'rise', fiBias: 800, kospiDrift: 2.5 },
-    { days: 65, trend: 'peak', fiBias: 1500, kospiDrift: 1.5 },
-    { days: 60, trend: 'early_sell', fiBias: -600, kospiDrift: -1.5 },
-    { days: 60, trend: 'heavy_sell', fiBias: -1800, kospiDrift: -4 },
-    { days: 55, trend: 'current', fiBias: -2200, kospiDrift: -3 },
+    { name: '2000s_IT_Bubble', days: 800, fiBias: 500, kospiDrift: 0.1, volatility: 30 },
+    { name: '2004_Growth', days: 1000, fiBias: 800, kospiDrift: 0.8, volatility: 15 },
+    { name: '2008_Crisis', days: 500, fiBias: -1500, kospiDrift: -2.5, volatility: 50 },
+    { name: '2010_Recovery', days: 1200, fiBias: 600, kospiDrift: 1.2, volatility: 20 },
+    { name: '2015_Stagnation', days: 1500, fiBias: -200, kospiDrift: 0.05, volatility: 10 },
+    { name: '2020_Pandemic', days: 500, fiBias: 2000, kospiDrift: 3.5, volatility: 60 },
+    { name: '2022_Correction', days: 600, fiBias: -1200, kospiDrift: -1.8, volatility: 25 },
+    { name: '2024_Current', days: 1500, fiBias: -800, kospiDrift: -0.5, volatility: 20 },
   ];
 
-  let dayCount = 0;
-  
+  // Calculate total trading days needed to reach today
+  const totalDays = phases.reduce((acc, p) => acc + p.days, 0);
+
+  // Work backwards from today to find start date
+  const endDate = new Date();
+
+  // Roughly 250 trading days per year, but we'll just step backward
+  let currentTargetDate = new Date(endDate);
+  let tradingDaysCounted = 0;
+  const targetDates: Date[] = [];
+
+  while (tradingDaysCounted < totalDays) {
+    const dow = currentTargetDate.getDay();
+    if (dow !== 0 && dow !== 6) {
+      targetDates.push(new Date(currentTargetDate));
+      tradingDaysCounted++;
+    }
+    currentTargetDate.setDate(currentTargetDate.getDate() - 1);
+  }
+
+  // Revert for chronological generation
+  targetDates.reverse();
+
+  let globalDayIdx = 0;
   for (const phase of phases) {
     for (let i = 0; i < phase.days; i++) {
-      const currentDate = new Date(startDate);
-      currentDate.setDate(startDate.getDate() + dayCount);
-      
-      // Skip weekends
-      const dow = currentDate.getDay();
-      if (dow === 0 || dow === 6) {
-        dayCount++;
-        i--;
-        continue;
-      }
+      const currentDate = targetDates[globalDayIdx];
+      if (!currentDate) break;
 
+      const drift = phase.kospiDrift;
+      const vol = phase.volatility;
       const noise = () => (Math.random() - 0.5) * 2;
-      const bigNoise = () => (Math.random() - 0.5) * 800;
+      const bigNoise = () => (Math.random() - 0.5) * vol * 20;
 
       let fi = phase.fiBias + bigNoise();
-      
+
       // Create some streaks
-      if (phase.trend === 'heavy_sell' || phase.trend === 'current') {
-        // Make 70% of days negative for FI
-        if (Math.random() > 0.3) {
-          fi = -Math.abs(fi) - Math.random() * 500;
-        }
-      } else if (phase.trend === 'rise' || phase.trend === 'peak') {
-        if (Math.random() > 0.35) {
-          fi = Math.abs(fi) + Math.random() * 300;
-        }
+      if (fi < 0 && Math.random() > 0.4) {
+        fi -= Math.random() * 800;
       }
 
       const individual = -fi * 0.4 + bigNoise();
@@ -75,13 +81,13 @@ function generateMockData(): DailyTradingData[] {
       const otherFinancial = (Math.random() - 0.5) * 150;
       const pension = (Math.random() - 0.3) * 600;
       const otherCorp = (Math.random() - 0.5) * 300;
-      
+
       const institution = fi + insurance + investmentTrust + bank + otherFinancial + pension;
-      
-      const kospiChange = phase.kospiDrift + noise() * 15;
+
+      const kospiChange = drift + noise() * vol;
       kospi += kospiChange;
-      kospi = Math.max(kospi, 2100);
-      kospi = Math.min(kospi, 2900);
+      kospi = Math.max(kospi, 500);
+      kospi = Math.min(kospi, 3500);
 
       const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
 
@@ -98,10 +104,10 @@ function generateMockData(): DailyTradingData[] {
         bank: Math.round(bank),
         otherFinancial: Math.round(otherFinancial),
         pension: Math.round(pension),
-        otherCorporation: Math.round(otherCorp),
+        otherCorporation: Math.round(otherCorp)
       });
 
-      dayCount++;
+      globalDayIdx++;
     }
   }
 
@@ -134,7 +140,7 @@ export function getFISellRatio(data: DailyTradingData[], index: number): number 
     Math.abs(d.bank < 0 ? d.bank : 0) +
     Math.abs(d.otherFinancial < 0 ? d.otherFinancial : 0) +
     Math.abs(d.pension < 0 ? d.pension : 0);
-  
+
   if (totalSelling === 0) return 0;
   const fiSelling = d.financialInvestment < 0 ? Math.abs(d.financialInvestment) : 0;
   return (fiSelling / totalSelling) * 100;
@@ -153,7 +159,7 @@ export interface RiskAssessment {
 
 export function calculateRisk(data: DailyTradingData[], endIndex: number): RiskAssessment {
   const consecutiveDays = getConsecutiveSellingDays(data, endIndex);
-  
+
   // Average selling amount over last N days
   const lookback = Math.min(10, endIndex + 1);
   let totalSell = 0;
@@ -167,22 +173,22 @@ export function calculateRisk(data: DailyTradingData[], endIndex: number): RiskA
   }
   const avgSell = sellDays > 0 ? totalSell / sellDays : 0;
   const sellRatio = getFISellRatio(data, endIndex);
-  
+
   // Scoring
   let score = 0;
-  
+
   // Consecutive days scoring
   if (consecutiveDays >= 10) score += 3;
   else if (consecutiveDays >= 7) score += 2.5;
   else if (consecutiveDays >= 5) score += 2;
   else if (consecutiveDays >= 3) score += 1;
-  
+
   // Average sell amount scoring
   if (avgSell >= 2000) score += 3;
   else if (avgSell >= 1500) score += 2.5;
   else if (avgSell >= 1000) score += 2;
   else if (avgSell >= 500) score += 1;
-  
+
   // Sell ratio scoring
   if (sellRatio >= 40) score += 2;
   else if (sellRatio >= 30) score += 1.5;
