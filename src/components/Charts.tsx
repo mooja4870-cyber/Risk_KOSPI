@@ -64,7 +64,7 @@ export function DailyBarChart({ data, compact = false }: ChartsProps) {
     <div className="rounded-xl border border-gray-700/50 bg-gray-800/50 backdrop-blur-sm p-5">
       <h3 className="text-white font-bold mb-1">금융투자 순매수/순매도 및 KOSPI 추이</h3>
       <p className="text-gray-400 text-xs mb-4">막대: 금융투자 순매수/순매도(억원) · 선: KOSPI 지수(pt)</p>
-      <div className={compact ? 'h-[357px]' : 'h-72'}>
+      <div className={compact ? 'h-[300px] sm:h-[357px]' : 'h-60 sm:h-72'}>
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={chartData} barCategoryGap="15%">
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -127,7 +127,7 @@ export function CumulativeChart({ data, compact = false }: ChartsProps) {
     <div className="rounded-xl border border-gray-700/50 bg-gray-800/50 backdrop-blur-sm p-5">
       <h3 className="text-white font-bold mb-1">누적 순매수 추이</h3>
       <p className="text-gray-400 text-xs mb-4">Cumulative Net Position (억원)</p>
-      <div className={compact ? 'h-[248px]' : 'h-72'}>
+      <div className={compact ? 'h-[200px] sm:h-[248px]' : 'h-60 sm:h-72'}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData}>
             <defs>
@@ -185,7 +185,7 @@ export function MovingAverageChart({ data }: ChartsProps) {
     <div className="rounded-xl border border-gray-700/50 bg-gray-800/50 backdrop-blur-sm p-5">
       <h3 className="text-white font-bold mb-1">이동평균 방향성 분석</h3>
       <p className="text-gray-400 text-xs mb-4">5일 / 20일 이동평균 (MA5 &lt; MA20 = 매도 압력 우세)</p>
-      <div className="h-72">
+      <div className="h-60 sm:h-72">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -243,7 +243,7 @@ export function ForeignCorrelationChart({ data }: ChartsProps) {
     <div className="rounded-xl border border-gray-700/50 bg-gray-800/50 backdrop-blur-sm p-5">
       <h3 className="text-white font-bold mb-1">금융투자 vs 외국인 수급 및 KOSPI 비교</h3>
       <p className="text-gray-400 text-xs mb-4">선: 금융투자/외국인(억원) · 하늘색 선: KOSPI 지수(pt)</p>
-      <div className="h-72">
+      <div className="h-60 sm:h-72">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />

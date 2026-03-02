@@ -47,20 +47,20 @@ export default function RiskScore({ risk, compact = false }: RiskScoreProps) {
   const scorePercent = Math.min((risk.score / 10) * 100, 100);
 
   return (
-    <div className={`rounded-xl border ${compact ? 'p-3 h-[220px]' : 'p-5'} ${c.bg} backdrop-blur-sm shadow-lg ${c.glow} overflow-hidden`}>
+    <div className={`rounded-xl border ${compact ? 'p-3 sm:p-4 h-[200px] sm:h-[220px]' : 'p-4 sm:p-5'} ${c.bg} backdrop-blur-sm shadow-lg ${c.glow} overflow-hidden`}>
       <div className={`flex items-center justify-between ${compact ? 'mb-2' : 'mb-4'}`}>
         <div className="flex items-center gap-3">
           <div className={`${compact ? 'p-2' : 'p-2.5'} rounded-lg bg-gradient-to-br ${c.gradient}`}>
             <Icon className={`${compact ? 'w-5 h-5' : 'w-6 h-6'} text-white`} />
           </div>
           <div>
-            <h3 className={`text-white font-bold ${compact ? 'text-base' : 'text-lg'}`}>리스크 점수</h3>
-            <p className="text-gray-400 text-xs">종료일 기준 연속 순매도 연동 평가</p>
+            <h3 className={`text-white font-bold ${compact ? 'text-sm sm:text-base' : 'text-base sm:text-lg'}`}>리스크 점수</h3>
+            <p className="text-gray-400 text-[10px]">종료일 기준 연속 순매도 평가</p>
           </div>
         </div>
         <div className="text-right">
-          <div className={`${compact ? 'text-3xl' : 'text-4xl'} font-black ${c.textColor}`}>{risk.score}</div>
-          <div className={`${compact ? 'text-xs' : 'text-sm'} font-bold ${c.textColor} px-2 py-0.5 rounded-full ${c.bg}`}>
+          <div className={`${compact ? 'text-2xl sm:text-3xl' : 'text-3xl sm:text-4xl'} font-black ${c.textColor}`}>{risk.score}</div>
+          <div className={`${compact ? 'text-[9px] sm:text-xs' : 'text-[10px] sm:text-sm'} font-bold ${c.textColor} px-1.5 py-0.5 rounded-full ${c.bg}`}>
             {risk.label}
           </div>
         </div>

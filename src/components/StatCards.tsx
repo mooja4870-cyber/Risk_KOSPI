@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { formatNumber } from '../utils/analysis';
 import type { StatsSummary } from '../utils/analysis';
 import {
@@ -8,6 +9,7 @@ import {
   ArrowUpCircle,
   ArrowDownCircle,
   Activity,
+  Info,
 } from 'lucide-react';
 
 interface StatCardsProps {
@@ -15,6 +17,8 @@ interface StatCardsProps {
 }
 
 export default function StatCards({ stats }: StatCardsProps) {
+  const [showPopup, setShowPopup] = useState(false);
+
   const formatAmount = (amount: number) => `${Math.round(amount).toLocaleString('ko-KR')}억`;
   const totalBuyAmount = stats.totalBuyAmount;
   const asPct = (amount: number) => (totalBuyAmount > 0 ? (amount / totalBuyAmount) * 100 : 0);
@@ -35,7 +39,7 @@ export default function StatCards({ stats }: StatCardsProps) {
 
   const cards = [
     {
-      label: '총 순매수 금액',
+      label: '총 순매수',
       value: `${formatNumber(Math.round(stats.totalNetBuy))}억`,
       icon: stats.totalNetBuy >= 0 ? TrendingUp : TrendingDown,
       color: stats.totalNetBuy >= 0 ? 'text-emerald-400' : 'text-rose-400',
@@ -79,7 +83,7 @@ export default function StatCards({ stats }: StatCardsProps) {
       bg: 'bg-rose-500/10 border-rose-500/20',
     },
     {
-      label: '표준편차 (변동성)',
+      label: '변동성',
       value: `${formatNumber(Math.round(stats.standardDeviation))}억`,
       icon: Activity,
       color: 'text-amber-400',
@@ -95,54 +99,64 @@ export default function StatCards({ stats }: StatCardsProps) {
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
       {cards.map((card) => (
         <div
           key={card.label}
-          className={`relative rounded-xl border p-4 ${card.bg} backdrop-blur-sm transition-all ${card.hasPopup ? 'group cursor-help hover:z-50' : 'hover:scale-[1.02]'}`}
+          onClick={card.hasPopup ? () => setShowPopup(!showPopup) : undefined}
+          className={`relative rounded-xl border p-3 sm:p-4 ${card.bg} backdrop-blur-sm transition-all ${card.hasPopup ? 'cursor-pointer active:scale-95' : 'hover:scale-[1.02]'}`}
         >
-          <div className="flex items-center gap-2 mb-2">
-            <card.icon className={`w-4 h-4 ${card.color}`} />
-            <span className="text-xs text-gray-400 font-medium">{card.label}</span>
+          <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center gap-1.5">
+              <card.icon className={`w-3.5 h-3.5 ${card.color}`} />
+              <span className="text-[10px] sm:text-xs text-gray-400 font-medium">{card.label}</span>
+            </div>
+            {card.hasPopup && <Info className="w-3 h-3 text-blue-400/50" />}
           </div>
-          <div className={`text-lg md:text-xl font-bold ${card.color}`}>
-            {card.value}
+          <div className="text-base sm:text-xl font-bold truncate">
+            <span className={card.color}>{card.value}</span>
           </div>
           {'subValue' in card && card.subValue && (
-            <div className="mt-1 text-[11px] text-slate-300">
+            <div className="mt-0.5 text-[9px] sm:text-[11px] text-slate-400 truncate">
               {card.subValue}
             </div>
           )}
-          {card.hasPopup && (
-            <div className="pointer-events-none absolute left-0 top-full mt-2 z-[70] w-72 rounded-xl border border-cyan-300/50 bg-[#030915] p-4 opacity-0 shadow-2xl shadow-black/70 ring-1 ring-cyan-200/20 transition-[opacity,transform] duration-150 translate-y-1 group-hover:translate-y-0 group-hover:opacity-100">
-              <div className="mb-3 flex items-center gap-2 border-b border-cyan-300/25 pb-2 text-xs font-bold text-cyan-200">
-                <div className="h-3 w-1 rounded-full bg-cyan-400" />
-                매수금액 + 비중(%) 세부내역
+
+          {card.hasPopup && showPopup && (
+            <div
+              className="absolute left-0 sm:left-auto sm:right-0 top-full mt-2 z-[70] w-[280px] sm:w-72 rounded-xl border border-blue-500/30 bg-gray-950 p-3 sm:p-4 shadow-2xl ring-1 ring-white/10"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="mb-3 flex items-center justify-between border-b border-white/10 pb-2">
+                <div className="flex items-center gap-2 text-[11px] sm:text-xs font-bold text-blue-300">
+                  <div className="h-2.5 w-1 rounded-full bg-blue-400" />
+                  매수금액 상세 비중
+                </div>
+                <button
+                  onClick={() => setShowPopup(false)}
+                  className="text-gray-500 hover:text-white text-xs"
+                >닫기</button>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {buyDetailRows.map((row) => {
                   const isFinancialInvestment = row.label === '금융투자';
                   return (
                     <div
                       key={row.label}
-                      className={`flex items-center justify-between border-b pb-1 text-xs last:border-0 last:pb-0 ${
-                        isFinancialInvestment
-                          ? 'rounded-md border-cyan-400/40 bg-cyan-500/15 px-2 py-1 ring-1 ring-cyan-300/30'
-                          : 'border-slate-800'
-                      }`}
+                      className={`flex items-center justify-between border-b border-white/5 pb-1 text-[10px] sm:text-xs last:border-0 last:pb-0 ${isFinancialInvestment
+                          ? 'rounded-md bg-blue-500/10 px-2 py-1 ring-1 ring-blue-500/20'
+                          : ''
+                        }`}
                     >
-                      <span className={`font-medium ${isFinancialInvestment ? 'text-cyan-200' : 'text-slate-300'}`}>
+                      <span className={`font-medium ${isFinancialInvestment ? 'text-blue-200' : 'text-slate-400'}`}>
                         {row.label}
                       </span>
-                      <span className={`font-mono font-bold ${isFinancialInvestment ? 'text-cyan-100' : 'text-white'}`}>
-                        {row.label === '총매수' ? `${formatAmount(row.value)} (100.0%)` : formatAmountWithPct(row.value)}
+                      <span className={`font-mono font-bold ${isFinancialInvestment ? 'text-blue-100' : 'text-white'}`}>
+                        {row.label === '총매수' ? `${formatAmount(row.value)} (100%)` : formatAmountWithPct(row.value)}
                       </span>
                     </div>
                   );
                 })}
-              </div>
-              <div className="mt-3 border-t border-slate-800 pt-2 text-[10px] italic text-slate-400">
-                * 각 투자자별 순수 매수량의 합계입니다.
               </div>
             </div>
           )}
@@ -151,3 +165,4 @@ export default function StatCards({ stats }: StatCardsProps) {
     </div>
   );
 }
+

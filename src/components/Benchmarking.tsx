@@ -206,60 +206,55 @@ export default function Benchmarking({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-gray-700/50 bg-gray-800/50 backdrop-blur-sm p-5">
+      <div className="rounded-xl border border-gray-700/50 bg-gray-800/50 backdrop-blur-sm p-3 sm:p-5">
         <div className="flex items-center gap-3 mb-3">
-          <div className="p-2 rounded-lg bg-cyan-500/20">
-            <Globe2 className="w-5 h-5 text-cyan-300" />
+          <div className="p-1.5 sm:p-2 rounded-lg bg-cyan-500/20">
+            <Globe2 className="w-4 h-4 sm:w-5 h-5 text-cyan-300" />
           </div>
           <div>
-            <h3 className="text-white font-bold">벤치마킹: 금융투자 집중매도 중심</h3>
-            <p className="text-gray-400 text-xs">
-              이 탭은 일반 기관/외국인보다 &quot;금융투자(증권사) 순매도 집중&quot;을 핵심 변수로 둡니다.
+            <h3 className="text-sm sm:text-base text-white font-bold">벤치마킹: 금융투자 집중매도</h3>
+            <p className="text-gray-400 text-[10px] sm:text-xs">
+              금융투자(증권사) 순매도를 핵심 변수로 분석합니다.
             </p>
           </div>
         </div>
-        <div className="text-sm text-gray-300 space-y-1">
+        <div className="text-[11px] sm:text-sm text-gray-300 space-y-1">
           <p>
-            선택 구간: <span className="text-cyan-300">{selectedStart}</span> ~{' '}
-            <span className="text-cyan-300">{selectedEnd}</span>
+            분석 구간: <span className="text-cyan-300">{selectedStart} ~ {selectedEnd}</span>
           </p>
           <p>
-            보유 원천 범위: <span className="text-gray-200">{earliestAvailable}</span> ~{' '}
-            <span className="text-gray-200">{latestAvailable}</span>
+            데이터 범위: <span className="text-gray-400">{earliestAvailable} ~ {latestAvailable}</span>
           </p>
           {kr2008CrashDay && (
-            <p className="text-xs text-amber-300">
-              참고: 2008-10-24 금융투자 {formatSignedEok(kr2008CrashDay.financialInvestment)}
+            <p className="text-[10px] text-amber-300/80 italic">
+              * 2008-10-24 기록: 금융투자 {formatSignedEok(kr2008CrashDay.financialInvestment)}
             </p>
           )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
-        <div className="rounded-lg bg-gray-900/50 border border-gray-700/40 p-3">
-          <div className="text-gray-400 text-xs mb-1">선택구간 매도일 비중</div>
-          <div className="text-rose-300 font-bold text-lg">
-            {summary.negativeRatioPct.toFixed(1)}% ({summary.negativeDays}일)
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+        <div className="rounded-lg bg-gray-900/50 border border-gray-700/40 p-2 sm:p-3">
+          <div className="text-gray-400 text-[10px] sm:text-xs mb-0.5 sm:mb-1">매도일 비중</div>
+          <div className="text-rose-300 font-bold text-sm sm:text-lg">
+            {summary.negativeRatioPct.toFixed(1)}% <span className="text-[10px] sm:text-xs font-normal">({summary.negativeDays}일)</span>
           </div>
         </div>
-        <div className="rounded-lg bg-gray-900/50 border border-gray-700/40 p-3">
-          <div className="text-gray-400 text-xs mb-1">최대 단일 순매도</div>
-          <div className="text-rose-300 font-bold text-lg">{formatSignedEok(summary.worstSingleDay.amount)}</div>
-          <div className="text-gray-500 text-xs mt-1">{summary.worstSingleDay.date}</div>
+        <div className="rounded-lg bg-gray-900/50 border border-gray-700/40 p-2 sm:p-3">
+          <div className="text-gray-400 text-[10px] sm:text-xs mb-0.5 sm:mb-1">최대 단일 순매도</div>
+          <div className="text-rose-300 font-bold text-sm sm:text-lg">{formatSignedEok(summary.worstSingleDay.amount)}</div>
         </div>
-        <div className="rounded-lg bg-gray-900/50 border border-gray-700/40 p-3">
-          <div className="text-gray-400 text-xs mb-1">최장 연속 순매도</div>
-          <div className="text-rose-300 font-bold text-lg">{summary.longestStreak.days}일</div>
-          <div className="text-gray-500 text-xs mt-1">
-            {summary.longestStreak.startDate} ~ {summary.longestStreak.endDate}
-          </div>
+        <div className="rounded-lg bg-gray-900/50 border border-gray-700/40 p-2 sm:p-3">
+          <div className="text-gray-400 text-[10px] sm:text-xs mb-0.5 sm:mb-1">최장 연속 매도</div>
+          <div className="text-rose-300 font-bold text-sm sm:text-lg">{summary.longestStreak.days}일</div>
+          <div className="text-gray-500 text-[9px] sm:text-xs mt-0.5 truncate">{summary.longestStreak.startDate.slice(5)} ~ {summary.longestStreak.endDate.slice(5)}</div>
         </div>
-        <div className="rounded-lg bg-gray-900/50 border border-gray-700/40 p-3">
-          <div className="text-gray-400 text-xs mb-1">해당 연속구간 누적</div>
-          <div className="text-rose-300 font-bold text-lg">{formatSignedEok(summary.longestStreak.totalAmount)}</div>
-          <div className="text-gray-500 text-xs mt-1">금융투자 순매수/순매도 합계</div>
+        <div className="rounded-lg bg-gray-900/50 border border-gray-700/40 p-2 sm:p-3">
+          <div className="text-gray-400 text-[10px] sm:text-xs mb-0.5 sm:mb-1">연속구간 누적</div>
+          <div className="text-rose-300 font-bold text-sm sm:text-lg">{formatSignedEok(summary.longestStreak.totalAmount)}</div>
         </div>
       </div>
+
 
       {benchmarkCases.map((item) => (
         <div
