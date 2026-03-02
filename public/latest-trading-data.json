@@ -1,7 +1,7 @@
 {
   "meta": {
     "source": "Naver Finance investor detail + KOSPI close (historical + 24-hour refresh)",
-    "updatedAtKst": "2026-03-02 20:35:16",
+    "updatedAtKst": "2026-03-02 15:38:05",
     "earliestTradingDate": "2005-01-03",
     "latestTradingDate": "2026-02-27",
     "refreshIntervalHours": 24,
