@@ -226,18 +226,23 @@ export default function App() {
       <div className="relative max-w-7xl mx-auto px-4 py-6">
         {/* Header */}
         <header className="mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+          <div className="flex flex-col sm:flex-row sm:items-end gap-x-4 gap-y-1 mb-2">
             <div className="flex items-center gap-3">
               <div className="p-1.5 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg shadow-blue-500/20">
                 <Zap className="w-5 h-5 text-white" />
               </div>
               <h1 className="text-xl md:text-3xl font-black bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                KOSPI 수급 분석기
+                KOSPI '금융투자' 수급 분석
               </h1>
             </div>
-            <p className="text-gray-400 text-[10px] sm:text-xs">
-              Financial Investment Flow Analyzer · 리스크 수급 분석
-            </p>
+            <div className="flex flex-col">
+              <p className="text-gray-400 text-[10px] sm:text-xs">
+                Financial Investment Flow Analyzer · 리스크 수급 분석
+              </p>
+              <p className="text-gray-500 text-[9px] sm:text-[11px] leading-tight mt-0.5">
+                거래주체 중 기관의 '금융투자'에 대한 매도매수 추세분석으로 주식급락 예방 차원
+              </p>
+            </div>
           </div>
         </header>
 
@@ -298,8 +303,8 @@ export default function App() {
                     setIsAnalyzed(true);
                   }}
                   className={`px-2 py-1 rounded-lg text-[10px] font-medium transition-all border ${startDate === preset.start && endDate === preset.end
-                      ? 'bg-blue-500/20 border-blue-500/40 text-blue-400'
-                      : 'bg-gray-900/50 border-gray-700/50 text-gray-400 hover:border-gray-500 hover:text-gray-300'
+                    ? 'bg-blue-500/20 border-blue-500/40 text-blue-400'
+                    : 'bg-gray-900/50 border-gray-700/50 text-gray-400 hover:border-gray-500 hover:text-gray-300'
                     }`}
                 >
                   {preset.label}
@@ -349,8 +354,8 @@ export default function App() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all whitespace-nowrap ${activeTab === tab.id
-                      ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white border border-blue-500/30'
-                      : 'text-gray-400 hover:text-gray-300 hover:bg-gray-700/30'
+                    ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white border border-blue-500/30'
+                    : 'text-gray-400 hover:text-gray-300 hover:bg-gray-700/30'
                     }`}
                   style={{ fontSize: '102%', fontWeight: 700 }}
                 >
