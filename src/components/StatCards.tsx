@@ -16,6 +16,10 @@ interface StatCardsProps {
 
 export default function StatCards({ stats }: StatCardsProps) {
   const formatAmount = (amount: number) => `${Math.round(amount).toLocaleString('ko-KR')}억`;
+  const totalBuyAmount = stats.totalBuyAmount;
+  const asPct = (amount: number) => (totalBuyAmount > 0 ? (amount / totalBuyAmount) * 100 : 0);
+  const formatAmountWithPct = (amount: number) =>
+    `${formatAmount(amount)} (${asPct(amount).toFixed(1)}%)`;
 
   const buyDetailRows = [
     { label: '총매수', value: stats.totalBuyAmount },
@@ -40,6 +44,7 @@ export default function StatCards({ stats }: StatCardsProps) {
     {
       label: '매수비중',
       value: `${stats.financialBuySharePct.toFixed(1)}%`,
+      subValue: `금융투자 ${formatAmount(stats.financialInvestmentBuyAmount)}`,
       icon: BarChart3,
       color: 'text-blue-400',
       bg: 'bg-blue-500/10 border-blue-500/20',
@@ -103,17 +108,24 @@ export default function StatCards({ stats }: StatCardsProps) {
           <div className={`text-lg md:text-xl font-bold ${card.color}`}>
             {card.value}
           </div>
+          {'subValue' in card && card.subValue && (
+            <div className="mt-1 text-[11px] text-slate-300">
+              {card.subValue}
+            </div>
+          )}
           {card.hasPopup && (
             <div className="pointer-events-none absolute left-0 top-full mt-2 z-[70] w-72 rounded-xl border border-cyan-300/50 bg-[#030915] p-4 opacity-0 shadow-2xl shadow-black/70 ring-1 ring-cyan-200/20 transition-[opacity,transform] duration-150 translate-y-1 group-hover:translate-y-0 group-hover:opacity-100">
               <div className="mb-3 flex items-center gap-2 border-b border-cyan-300/25 pb-2 text-xs font-bold text-cyan-200">
                 <div className="h-3 w-1 rounded-full bg-cyan-400" />
-                매수금액 세부내역 (선택 기간 합계)
+                매수금액 + 비중(%) 세부내역
               </div>
               <div className="space-y-2">
                 {buyDetailRows.map((row) => (
                   <div key={row.label} className="flex items-center justify-between border-b border-slate-800 pb-1 text-xs last:border-0 last:pb-0">
                     <span className="font-medium text-slate-300">{row.label}</span>
-                    <span className="font-mono font-bold text-white">{formatAmount(row.value)}</span>
+                    <span className="font-mono font-bold text-white">
+                      {row.label === '총매수' ? `${formatAmount(row.value)} (100.0%)` : formatAmountWithPct(row.value)}
+                    </span>
                   </div>
                 ))}
               </div>
