@@ -215,54 +215,35 @@ export function detectConsecutiveSells(
 export function calculateRiskScore(
   consecutiveInfo: ConsecutiveSellInfo
 ): RiskAssessment {
+  const streak = consecutiveInfo.currentStreak;
+  const streakAmount = consecutiveInfo.currentStreakAmount;
   let score = 0;
   const factors: string[] = [];
 
-  // 1) End-date continuity: if the latest day is still in a sell streak, treat as structural weakness.
-  if (consecutiveInfo.currentStreak >= 2) {
-    score += 1;
-    factors.push(`종료일 기준 연속 순매도 ${consecutiveInfo.currentStreak}일 (+1)`);
-  }
-  if (consecutiveInfo.currentStreak >= 3) {
-    score += 2;
-    factors.push(`종료일 기준 3일+ 연속 순매도 진행 (+2)`);
-  }
-  if (consecutiveInfo.currentStreak >= 5) {
-    score += 2;
-    factors.push(`종료일 기준 5일+ 연속 순매도 (구조적 약세) (+2)`);
-  }
-  if (consecutiveInfo.currentStreak >= 7) {
-    score += 1;
-    factors.push(`종료일 기준 7일+ 연속 순매도 (고위험) (+1)`);
-  }
-
-  // 2) Repetition: repeated structural streaks in the selected period.
-  if (consecutiveInfo.structuralStreakCount >= 2) {
-    score += 1;
-    factors.push(`3일+ 연속 순매도 구간 ${consecutiveInfo.structuralStreakCount}회 (+1)`);
-  }
-  if (consecutiveInfo.structuralStreakCount >= 4) {
-    score += 1;
-    factors.push(`연속 순매도 반복 빈도 높음 (${consecutiveInfo.structuralStreakCount}회) (+1)`);
-  }
-  if (consecutiveInfo.repeatStrength >= 6) {
-    score += 1;
-    factors.push(`반복 강도 지수 ${consecutiveInfo.repeatStrength} (연속성 누적) (+1)`);
-  }
-  if (consecutiveInfo.repeatStrength >= 10) {
-    score += 1;
-    factors.push(`반복 강도 지수 매우 높음 (${consecutiveInfo.repeatStrength}) (+1)`);
-  }
-  if (consecutiveInfo.highRiskStreakCount >= 2) {
-    score += 1;
-    factors.push(`5일+ 연속 순매도 고위험 구간 ${consecutiveInfo.highRiskStreakCount}회 (+1)`);
-  }
-  if (consecutiveInfo.structuralCoveragePct >= 35) {
-    score += 1;
-    factors.push(`선택구간 대비 연속 순매도 점유율 ${consecutiveInfo.structuralCoveragePct.toFixed(1)}% (+1)`);
+  // Risk score is linked only to end-date consecutive sell detection.
+  if (streak <= 0) {
+    score = 0;
+    factors.push('종료일 기준 연속 순매도 없음');
+  } else if (streak === 1) {
+    score = 1;
+    factors.push('종료일 기준 1일 연속 순매도');
+  } else if (streak === 2) {
+    score = 2;
+    factors.push('종료일 기준 2일 연속 순매도 (경계)');
+  } else if (streak <= 4) {
+    score = 4;
+    factors.push(`종료일 기준 ${streak}일 연속 순매도 (구조적 약세 시작)`);
+  } else if (streak <= 6) {
+    score = 7;
+    factors.push(`종료일 기준 ${streak}일 연속 순매도 (위험)`);
+  } else {
+    score = 10;
+    factors.push(`종료일 기준 ${streak}일 연속 순매도 (고위험)`);
   }
 
-  score = Math.min(score, 10);
+  if (streak >= 2) {
+    factors.push(`종료일 기준 연속 구간 누적 ${formatNumber(Math.round(streakAmount))}억`);
+  }
 
   let level: RiskAssessment['level'];
   let label: string;

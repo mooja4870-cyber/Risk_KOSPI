@@ -54,7 +54,7 @@ export default function RiskScore({ risk }: RiskScoreProps) {
           </div>
           <div>
             <h3 className="text-white font-bold text-lg">리스크 점수</h3>
-            <p className="text-gray-400 text-xs">Risk Assessment Score</p>
+            <p className="text-gray-400 text-xs">종료일 기준 연속 순매도 연동 평가</p>
           </div>
         </div>
         <div className="text-right">
