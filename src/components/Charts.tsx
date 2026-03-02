@@ -56,7 +56,7 @@ export function DailyBarChart({ data }: ChartsProps) {
 
   return (
     <div className="rounded-xl border border-gray-700/50 bg-gray-800/50 backdrop-blur-sm p-5">
-      <h3 className="text-white font-bold mb-1">일별 금융투자 순매수/순매도</h3>
+      <h3 className="text-white font-bold mb-1">일별 금융투자 순매수/순매도 및 KOSPI 추이</h3>
       <p className="text-gray-400 text-xs mb-4">Daily Financial Investment Net Buy/Sell (억원)</p>
       <div className="h-72">
         <ResponsiveContainer width="100%" height="100%">
