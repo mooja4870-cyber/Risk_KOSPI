@@ -9,8 +9,8 @@ import requests
 from bs4 import BeautifulSoup
 
 DETAIL_TREND_URL = "https://finance.naver.com/sise/investorDealTrendDay.nhn"
-HISTORICAL_START_DATE = "2020-01-01"
-BOOTSTRAP_MAX_PAGES = 300
+HISTORICAL_START_DATE = "2005-01-03"
+BOOTSTRAP_MAX_PAGES = 700
 RECENT_REFRESH_PAGES = 20
 
 HEADERS = {

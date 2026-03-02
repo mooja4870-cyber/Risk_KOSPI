@@ -491,7 +491,12 @@ export default function App() {
 
             {/* Benchmark Tab */}
             {activeTab === 'benchmark' && (
-              <Benchmarking />
+              <Benchmarking
+                selectedData={filteredData}
+                allData={tradingData}
+                selectedStart={analyzedStartDate}
+                selectedEnd={analyzedEndDate}
+              />
             )}
           </>
         )}
