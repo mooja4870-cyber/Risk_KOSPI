@@ -94,7 +94,7 @@ export default function StatCards({ stats }: StatCardsProps) {
       {cards.map((card) => (
         <div
           key={card.label}
-          className={`relative rounded-xl border p-4 ${card.bg} backdrop-blur-sm transition-all hover:scale-[1.02] ${card.hasPopup ? 'group cursor-help hover:z-50' : ''}`}
+          className={`relative rounded-xl border p-4 ${card.bg} backdrop-blur-sm transition-all ${card.hasPopup ? 'group cursor-help hover:z-50' : 'hover:scale-[1.02]'}`}
         >
           <div className="flex items-center gap-2 mb-2">
             <card.icon className={`w-4 h-4 ${card.color}`} />
@@ -104,20 +104,20 @@ export default function StatCards({ stats }: StatCardsProps) {
             {card.value}
           </div>
           {card.hasPopup && (
-            <div className="pointer-events-none absolute left-0 top-full mt-2 z-[60] w-72 rounded-xl border border-blue-500/50 bg-gray-900 shadow-2xl p-4 opacity-0 transition-opacity group-hover:opacity-100 ring-1 ring-white/10">
-              <div className="mb-3 text-xs font-bold text-blue-300 flex items-center gap-2">
-                <div className="w-1 h-3 bg-blue-500 rounded-full" />
+            <div className="pointer-events-none absolute left-0 top-full mt-2 z-[70] w-72 rounded-xl border border-cyan-300/50 bg-[#030915] p-4 opacity-0 shadow-2xl shadow-black/70 ring-1 ring-cyan-200/20 transition-[opacity,transform] duration-150 translate-y-1 group-hover:translate-y-0 group-hover:opacity-100">
+              <div className="mb-3 flex items-center gap-2 border-b border-cyan-300/25 pb-2 text-xs font-bold text-cyan-200">
+                <div className="h-3 w-1 rounded-full bg-cyan-400" />
                 매수금액 세부내역 (선택 기간 합계)
               </div>
               <div className="space-y-2">
                 {buyDetailRows.map((row) => (
-                  <div key={row.label} className="flex items-center justify-between text-xs border-b border-gray-800 pb-1 last:border-0 last:pb-0">
-                    <span className="text-gray-400 font-medium">{row.label}</span>
-                    <span className="font-mono text-gray-100 font-bold">{formatAmount(row.value)}</span>
+                  <div key={row.label} className="flex items-center justify-between border-b border-slate-800 pb-1 text-xs last:border-0 last:pb-0">
+                    <span className="font-medium text-slate-300">{row.label}</span>
+                    <span className="font-mono font-bold text-white">{formatAmount(row.value)}</span>
                   </div>
                 ))}
               </div>
-              <div className="mt-3 pt-2 border-t border-gray-800 text-[10px] text-gray-500 italic">
+              <div className="mt-3 border-t border-slate-800 pt-2 text-[10px] italic text-slate-400">
                 * 각 투자자별 순수 매수량의 합계입니다.
               </div>
             </div>
