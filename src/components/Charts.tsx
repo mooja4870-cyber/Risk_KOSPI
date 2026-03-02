@@ -34,9 +34,10 @@ interface ChartsProps {
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
+    const formattedDate = typeof label === 'string' ? label.replace(/-/g, '.') : label;
     return (
       <div className="bg-gray-900/95 border border-gray-700 rounded-lg p-3 shadow-xl backdrop-blur-sm">
-        <p className="text-gray-400 text-xs mb-2">{label}</p>
+        <p className="text-gray-400 text-xs mb-2 font-mono font-medium">{formattedDate}</p>
         {payload.map((p: any, i: number) => (
           <p key={i} className="text-sm" style={{ color: p.color }}>
             {p.name}:{' '}
@@ -53,7 +54,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export function DailyBarChart({ data, compact = false }: ChartsProps) {
   const chartData = data.map((d) => ({
-    date: d.date.slice(5),
+    date: d.date,
     value: d.value,
     kospiClose: d.kospiClose,
     fill: d.value >= 0 ? '#10b981' : '#f43f5e',
@@ -70,6 +71,7 @@ export function DailyBarChart({ data, compact = false }: ChartsProps) {
             <XAxis
               dataKey="date"
               tick={{ fill: '#9ca3af', fontSize: 10 }}
+              tickFormatter={(str) => (str ? str.slice(5) : '')}
               interval={Math.max(Math.floor(chartData.length / 12), 0)}
               axisLine={{ stroke: '#4b5563' }}
             />
@@ -114,7 +116,7 @@ export function DailyBarChart({ data, compact = false }: ChartsProps) {
 
 export function CumulativeChart({ data, compact = false }: ChartsProps) {
   const chartData = data.map((d) => ({
-    date: d.date.slice(5),
+    date: d.date,
     cumulative: d.cumulative,
   }));
 
@@ -146,6 +148,7 @@ export function CumulativeChart({ data, compact = false }: ChartsProps) {
             <XAxis
               dataKey="date"
               tick={{ fill: '#9ca3af', fontSize: 10 }}
+              tickFormatter={(str) => (str ? str.slice(5) : '')}
               interval={Math.max(Math.floor(chartData.length / 12), 0)}
               axisLine={{ stroke: '#4b5563' }}
             />
@@ -173,7 +176,7 @@ export function CumulativeChart({ data, compact = false }: ChartsProps) {
 
 export function MovingAverageChart({ data }: ChartsProps) {
   const chartData = data.map((d) => ({
-    date: d.date.slice(5),
+    date: d.date,
     ma5: d.ma5 !== null ? Math.round(d.ma5) : null,
     ma20: d.ma20 !== null ? Math.round(d.ma20) : null,
   }));
@@ -189,6 +192,7 @@ export function MovingAverageChart({ data }: ChartsProps) {
             <XAxis
               dataKey="date"
               tick={{ fill: '#9ca3af', fontSize: 10 }}
+              tickFormatter={(str) => (str ? str.slice(5) : '')}
               interval={Math.max(Math.floor(chartData.length / 12), 0)}
               axisLine={{ stroke: '#4b5563' }}
             />
@@ -229,7 +233,7 @@ export function MovingAverageChart({ data }: ChartsProps) {
 
 export function ForeignCorrelationChart({ data }: ChartsProps) {
   const chartData = data.map((d) => ({
-    date: d.date.slice(5),
+    date: d.date,
     financial: d.value,
     foreign: d.foreign,
   }));
@@ -245,6 +249,7 @@ export function ForeignCorrelationChart({ data }: ChartsProps) {
             <XAxis
               dataKey="date"
               tick={{ fill: '#9ca3af', fontSize: 10 }}
+              tickFormatter={(str) => (str ? str.slice(5) : '')}
               interval={Math.max(Math.floor(chartData.length / 12), 0)}
               axisLine={{ stroke: '#4b5563' }}
             />
