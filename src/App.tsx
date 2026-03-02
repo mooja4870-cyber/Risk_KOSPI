@@ -350,11 +350,12 @@ export default function App() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all whitespace-nowrap ${
                     activeTab === tab.id
                       ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white border border-blue-500/30'
                       : 'text-gray-400 hover:text-gray-300 hover:bg-gray-700/30'
                   }`}
+                  style={{ fontSize: '133%', fontWeight: 700 }}
                 >
                   <tab.icon className="w-4 h-4" />
                   {tab.label}
