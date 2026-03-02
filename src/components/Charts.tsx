@@ -236,12 +236,13 @@ export function ForeignCorrelationChart({ data }: ChartsProps) {
     date: d.date,
     financial: d.value,
     foreign: d.foreign,
+    kospiClose: d.kospiClose,
   }));
 
   return (
     <div className="rounded-xl border border-gray-700/50 bg-gray-800/50 backdrop-blur-sm p-5">
-      <h3 className="text-white font-bold mb-1">금융투자 vs 외국인 수급 비교</h3>
-      <p className="text-gray-400 text-xs mb-4">동시 순매도 구간 = 하락 위험 증가</p>
+      <h3 className="text-white font-bold mb-1">금융투자 vs 외국인 수급 및 KOSPI 비교</h3>
+      <p className="text-gray-400 text-xs mb-4">선: 금융투자/외국인(억원) · 하늘색 선: KOSPI 지수(pt)</p>
       <div className="h-72">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={chartData}>
@@ -254,14 +255,24 @@ export function ForeignCorrelationChart({ data }: ChartsProps) {
               axisLine={{ stroke: '#4b5563' }}
             />
             <YAxis
+              yAxisId="flow"
               tick={{ fill: '#9ca3af', fontSize: 10 }}
               axisLine={{ stroke: '#4b5563' }}
               tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
             />
+            <YAxis
+              yAxisId="kospi"
+              orientation="right"
+              tick={{ fill: '#67e8f9', fontSize: 10 }}
+              axisLine={{ stroke: '#155e75' }}
+              tickFormatter={(v) => Number(v).toLocaleString('ko-KR', { maximumFractionDigits: 0 })}
+              domain={['auto', 'auto']}
+            />
             <Tooltip content={<CustomTooltip />} />
             <Legend wrapperStyle={{ fontSize: '12px' }} />
-            <ReferenceLine y={0} stroke="#6b7280" />
+            <ReferenceLine y={0} yAxisId="flow" stroke="#6b7280" />
             <Line
+              yAxisId="flow"
               type="monotone"
               dataKey="financial"
               name="금융투자"
@@ -270,12 +281,24 @@ export function ForeignCorrelationChart({ data }: ChartsProps) {
               dot={false}
             />
             <Line
+              yAxisId="flow"
               type="monotone"
               dataKey="foreign"
               name="외국인"
               stroke="#06b6d4"
               strokeWidth={1.5}
               dot={false}
+            />
+            <Line
+              yAxisId="kospi"
+              type="monotone"
+              dataKey="kospiClose"
+              name="KOSPI"
+              stroke="#22d3ee"
+              strokeWidth={2}
+              strokeOpacity={0.6}
+              dot={false}
+              connectNulls={false}
             />
           </ComposedChart>
         </ResponsiveContainer>
