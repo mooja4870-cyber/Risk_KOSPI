@@ -162,8 +162,8 @@ export default function App() {
   );
 
   const riskAssessment = useMemo(
-    () => calculateRiskScore(filteredData, stats, consecutiveInfo),
-    [filteredData, stats, consecutiveInfo]
+    () => calculateRiskScore(consecutiveInfo),
+    [consecutiveInfo]
   );
 
   const chartData = useMemo(

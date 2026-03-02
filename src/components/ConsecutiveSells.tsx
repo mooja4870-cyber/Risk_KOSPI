@@ -34,8 +34,11 @@ export default function ConsecutiveSells({ info }: Props) {
           <div className="text-2xl font-bold text-rose-400">{info.maxStreak}일</div>
         </div>
         <div className="bg-gray-900/50 rounded-lg p-3 border border-gray-700/30">
-          <div className="text-xs text-gray-500 mb-1">3일+ 연속 순매도 횟수</div>
-          <div className="text-2xl font-bold text-amber-400">{info.streaks.length}회</div>
+          <div className="text-xs text-gray-500 mb-1">연속 순매도 반복 강도</div>
+          <div className="text-2xl font-bold text-amber-400">{info.repeatStrength}</div>
+          <div className="text-[11px] text-gray-500 mt-0.5">
+            3일+ 구간 {info.structuralStreakCount}회 · 점유율 {info.structuralCoveragePct.toFixed(1)}%
+          </div>
         </div>
       </div>
 
@@ -44,7 +47,7 @@ export default function ConsecutiveSells({ info }: Props) {
         <div className="mb-4 p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
           <span className="text-sm text-rose-300">
-            현재 <strong>{info.currentStreak}일</strong> 연속 순매도 진행 중
+            종료일 기준 <strong>{info.currentStreak}일</strong> 연속 순매도 진행 중
           </span>
         </div>
       )}

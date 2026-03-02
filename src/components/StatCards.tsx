@@ -15,6 +15,20 @@ interface StatCardsProps {
 }
 
 export default function StatCards({ stats }: StatCardsProps) {
+  const formatAmount = (amount: number) => `${Math.round(amount).toLocaleString('ko-KR')}억`;
+
+  const buyDetailRows = [
+    { label: '총매수', value: stats.totalBuyAmount },
+    { label: '개인', value: stats.individualBuyAmount },
+    { label: '외국인', value: stats.foreignBuyAmount },
+    { label: '기관계', value: stats.institutionBuyAmount },
+    { label: '금융투자', value: stats.financialInvestmentBuyAmount },
+    { label: '보험', value: stats.insuranceBuyAmount },
+    { label: '투신', value: stats.investmentTrustBuyAmount },
+    { label: '연기금', value: stats.pensionBuyAmount },
+    { label: '기타법인', value: stats.otherCorporationBuyAmount },
+  ];
+
   const cards = [
     {
       label: '총 순매수 금액',
@@ -29,6 +43,7 @@ export default function StatCards({ stats }: StatCardsProps) {
       icon: BarChart3,
       color: 'text-blue-400',
       bg: 'bg-blue-500/10 border-blue-500/20',
+      hasPopup: true,
     },
     {
       label: '순매수 일수',
@@ -79,7 +94,7 @@ export default function StatCards({ stats }: StatCardsProps) {
       {cards.map((card) => (
         <div
           key={card.label}
-          className={`rounded-xl border p-4 ${card.bg} backdrop-blur-sm transition-all hover:scale-[1.02]`}
+          className={`relative rounded-xl border p-4 ${card.bg} backdrop-blur-sm transition-all hover:scale-[1.02] ${card.hasPopup ? 'group cursor-help' : ''}`}
         >
           <div className="flex items-center gap-2 mb-2">
             <card.icon className={`w-4 h-4 ${card.color}`} />
@@ -88,6 +103,21 @@ export default function StatCards({ stats }: StatCardsProps) {
           <div className={`text-lg md:text-xl font-bold ${card.color}`}>
             {card.value}
           </div>
+          {card.hasPopup && (
+            <div className="pointer-events-none absolute left-0 top-full mt-2 z-20 w-64 rounded-lg border border-blue-500/30 bg-gray-950/95 p-3 opacity-0 shadow-xl transition-opacity group-hover:opacity-100">
+              <div className="mb-2 text-[11px] font-semibold text-blue-300">
+                매수금액 세부내역 (선택 기간 합계)
+              </div>
+              <div className="space-y-1">
+                {buyDetailRows.map((row) => (
+                  <div key={row.label} className="flex items-center justify-between text-xs">
+                    <span className="text-gray-400">{row.label}</span>
+                    <span className="font-mono text-gray-200">{formatAmount(row.value)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       ))}
     </div>
