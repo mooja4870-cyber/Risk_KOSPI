@@ -280,6 +280,7 @@ export function calculateMovingAverages(
   cumulative: number;
   foreign: number;
   isSell: boolean;
+  kospiClose: number | null;
 }[] {
   const sorted = [...data].sort(
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
@@ -310,6 +311,7 @@ export function calculateMovingAverages(
       cumulative: cumSum,
       foreign: d.foreign,
       isSell: d.financialInvestment < 0,
+      kospiClose: typeof d.kospiClose === 'number' ? d.kospiClose : null,
     };
   });
 }

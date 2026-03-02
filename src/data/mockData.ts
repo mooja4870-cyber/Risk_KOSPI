@@ -13,6 +13,7 @@ export interface DailyTradeData {
   otherFinancial: number; // 기타금융
   pension: number; // 연기금
   otherCorporation: number; // 기타법인
+  kospiClose?: number; // KOSPI 종가
 }
 
 function seededRandom(seed: number): () => number {
@@ -34,6 +35,7 @@ function generateMockData(): DailyTradeData[] {
   // Patterns: financial investment tends to have streaks
   let financialTrend = 0;
   let foreignTrend = 0;
+  let kospiLevel = 2500;
 
   while (current <= endDate) {
     const day = current.getDay();
@@ -68,6 +70,8 @@ function generateMockData(): DailyTradeData[] {
       otherFinancial +
       pension;
     const individual = -(institution + foreign + otherCorporation);
+    const kospiDelta = (financialInvestment / 5000) * 2 + (rand() - 0.5) * 20;
+    kospiLevel = Math.max(1500, Math.min(4000, kospiLevel + kospiDelta));
 
     const year = current.getFullYear();
     const month = String(current.getMonth() + 1).padStart(2, '0');
@@ -85,6 +89,7 @@ function generateMockData(): DailyTradeData[] {
       otherFinancial,
       pension,
       otherCorporation,
+      kospiClose: Number(kospiLevel.toFixed(2)),
     });
 
     current.setDate(current.getDate() + 1);

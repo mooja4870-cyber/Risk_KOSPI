@@ -1,5 +1,4 @@
 import {
-  BarChart,
   Bar,
   LineChart,
   Line,
@@ -25,6 +24,7 @@ interface ChartDataPoint {
   cumulative: number;
   foreign: number;
   isSell: boolean;
+  kospiClose: number | null;
 }
 
 interface ChartsProps {
@@ -38,7 +38,10 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         <p className="text-gray-400 text-xs mb-2">{label}</p>
         {payload.map((p: any, i: number) => (
           <p key={i} className="text-sm" style={{ color: p.color }}>
-            {p.name}: {formatNumber(Math.round(p.value))}억
+            {p.name}:{' '}
+            {p.dataKey === 'kospiClose' || p.name === 'KOSPI'
+              ? `${Number(p.value).toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} pt`
+              : `${formatNumber(Math.round(p.value))}억`}
           </p>
         ))}
       </div>
@@ -51,16 +54,17 @@ export function DailyBarChart({ data }: ChartsProps) {
   const chartData = data.map((d) => ({
     date: d.date.slice(5),
     value: d.value,
+    kospiClose: d.kospiClose,
     fill: d.value >= 0 ? '#10b981' : '#f43f5e',
   }));
 
   return (
     <div className="rounded-xl border border-gray-700/50 bg-gray-800/50 backdrop-blur-sm p-5">
       <h3 className="text-white font-bold mb-1">일별 금융투자 순매수/순매도 및 KOSPI 추이</h3>
-      <p className="text-gray-400 text-xs mb-4">Daily Financial Investment Net Buy/Sell (억원)</p>
+      <p className="text-gray-400 text-xs mb-4">막대: 금융투자 순매수/순매도(억원) · 선: KOSPI 지수(pt)</p>
       <div className="h-72">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={chartData} barCategoryGap="15%">
+          <ComposedChart data={chartData} barCategoryGap="15%">
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
             <XAxis
               dataKey="date"
@@ -69,18 +73,38 @@ export function DailyBarChart({ data }: ChartsProps) {
               axisLine={{ stroke: '#4b5563' }}
             />
             <YAxis
+              yAxisId="flow"
               tick={{ fill: '#9ca3af', fontSize: 10 }}
               axisLine={{ stroke: '#4b5563' }}
               tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
             />
+            <YAxis
+              yAxisId="kospi"
+              orientation="right"
+              tick={{ fill: '#67e8f9', fontSize: 10 }}
+              axisLine={{ stroke: '#155e75' }}
+              tickFormatter={(v) => Number(v).toLocaleString('ko-KR', { maximumFractionDigits: 0 })}
+              domain={['auto', 'auto']}
+            />
             <Tooltip content={<CustomTooltip />} />
+            <Legend wrapperStyle={{ fontSize: '12px' }} />
             <ReferenceLine y={0} stroke="#6b7280" />
-            <Bar dataKey="value" name="금융투자" radius={[2, 2, 0, 0]}>
+            <Bar yAxisId="flow" dataKey="value" name="금융투자" radius={[2, 2, 0, 0]}>
               {chartData.map((entry, index) => (
                 <Cell key={index} fill={entry.fill} />
               ))}
             </Bar>
-          </BarChart>
+            <Line
+              yAxisId="kospi"
+              type="monotone"
+              dataKey="kospiClose"
+              name="KOSPI"
+              stroke="#22d3ee"
+              strokeWidth={2}
+              dot={false}
+              connectNulls={false}
+            />
+          </ComposedChart>
         </ResponsiveContainer>
       </div>
     </div>
