@@ -365,20 +365,20 @@ export default function App() {
             {/* Overview Tab */}
             {activeTab === 'overview' && (
               <div className="space-y-6">
-                {/* Stat Cards */}
-                <StatCards stats={stats} />
-
                 {/* Risk Score + Consecutive Sells side by side */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <RiskScore risk={riskAssessment} />
-                  <ConsecutiveSells info={consecutiveInfo} />
+                  <RiskScore risk={riskAssessment} compact />
+                  <ConsecutiveSells info={consecutiveInfo} compact />
                 </div>
 
                 {/* Quick Charts */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <DailyBarChart data={chartData} />
-                  <CumulativeChart data={chartData} />
+                  <DailyBarChart data={chartData} compact />
+                  <CumulativeChart data={chartData} compact />
                 </div>
+
+                {/* Stat Cards */}
+                <StatCards stats={stats} />
 
                 {/* Market Interpretation Guide */}
                 <div className="rounded-xl border border-gray-700/50 bg-gray-800/50 backdrop-blur-sm p-5">

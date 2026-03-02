@@ -3,9 +3,10 @@ import { Shield, ShieldAlert, ShieldX, AlertTriangle } from 'lucide-react';
 
 interface RiskScoreProps {
   risk: RiskAssessment;
+  compact?: boolean;
 }
 
-export default function RiskScore({ risk }: RiskScoreProps) {
+export default function RiskScore({ risk, compact = false }: RiskScoreProps) {
   const config = {
     normal: {
       icon: Shield,
@@ -46,27 +47,27 @@ export default function RiskScore({ risk }: RiskScoreProps) {
   const scorePercent = Math.min((risk.score / 10) * 100, 100);
 
   return (
-    <div className={`rounded-xl border p-5 ${c.bg} backdrop-blur-sm shadow-lg ${c.glow}`}>
-      <div className="flex items-center justify-between mb-4">
+    <div className={`rounded-xl border ${compact ? 'p-3 h-[220px]' : 'p-5'} ${c.bg} backdrop-blur-sm shadow-lg ${c.glow} overflow-hidden`}>
+      <div className={`flex items-center justify-between ${compact ? 'mb-2' : 'mb-4'}`}>
         <div className="flex items-center gap-3">
-          <div className={`p-2.5 rounded-lg bg-gradient-to-br ${c.gradient}`}>
-            <Icon className="w-6 h-6 text-white" />
+          <div className={`${compact ? 'p-2' : 'p-2.5'} rounded-lg bg-gradient-to-br ${c.gradient}`}>
+            <Icon className={`${compact ? 'w-5 h-5' : 'w-6 h-6'} text-white`} />
           </div>
           <div>
-            <h3 className="text-white font-bold text-lg">리스크 점수</h3>
+            <h3 className={`text-white font-bold ${compact ? 'text-base' : 'text-lg'}`}>리스크 점수</h3>
             <p className="text-gray-400 text-xs">종료일 기준 연속 순매도 연동 평가</p>
           </div>
         </div>
         <div className="text-right">
-          <div className={`text-4xl font-black ${c.textColor}`}>{risk.score}</div>
-          <div className={`text-sm font-bold ${c.textColor} px-2 py-0.5 rounded-full ${c.bg}`}>
+          <div className={`${compact ? 'text-3xl' : 'text-4xl'} font-black ${c.textColor}`}>{risk.score}</div>
+          <div className={`${compact ? 'text-xs' : 'text-sm'} font-bold ${c.textColor} px-2 py-0.5 rounded-full ${c.bg}`}>
             {risk.label}
           </div>
         </div>
       </div>
 
       {/* Score bar */}
-      <div className="mb-4">
+      <div className={compact ? 'mb-2' : 'mb-4'}>
         <div className="flex justify-between text-xs text-gray-500 mb-1">
           <span>0</span>
           <span>정상</span>
@@ -75,7 +76,7 @@ export default function RiskScore({ risk }: RiskScoreProps) {
           <span>고위험</span>
           <span>10</span>
         </div>
-        <div className="h-3 bg-gray-800 rounded-full overflow-hidden">
+        <div className={`${compact ? 'h-2' : 'h-3'} bg-gray-800 rounded-full overflow-hidden`}>
           <div
             className={`h-full rounded-full bg-gradient-to-r ${c.gradient} transition-all duration-1000 ease-out`}
             style={{ width: `${scorePercent}%` }}
@@ -84,12 +85,12 @@ export default function RiskScore({ risk }: RiskScoreProps) {
       </div>
 
       {/* Risk factors */}
-      <div className="space-y-1.5">
-        <p className="text-xs text-gray-500 font-medium mb-2">리스크 요인 분석</p>
-        {risk.factors.map((factor, i) => (
+      <div className={`${compact ? 'space-y-1' : 'space-y-1.5'} ${compact ? 'max-h-[90px] overflow-y-auto' : ''}`}>
+        <p className="text-xs text-gray-500 font-medium mb-1">리스크 요인 분석</p>
+        {(compact ? risk.factors.slice(0, 2) : risk.factors).map((factor, i) => (
           <div
             key={i}
-            className="flex items-start gap-2 text-sm text-gray-300"
+            className={`flex items-start gap-2 ${compact ? 'text-xs' : 'text-sm'} text-gray-300`}
           >
             <span className={`mt-0.5 w-1.5 h-1.5 rounded-full ${c.barColor} shrink-0`} />
             <span>{factor}</span>

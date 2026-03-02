@@ -29,6 +29,7 @@ interface ChartDataPoint {
 
 interface ChartsProps {
   data: ChartDataPoint[];
+  compact?: boolean;
 }
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -50,7 +51,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-export function DailyBarChart({ data }: ChartsProps) {
+export function DailyBarChart({ data, compact = false }: ChartsProps) {
   const chartData = data.map((d) => ({
     date: d.date.slice(5),
     value: d.value,
@@ -62,7 +63,7 @@ export function DailyBarChart({ data }: ChartsProps) {
     <div className="rounded-xl border border-gray-700/50 bg-gray-800/50 backdrop-blur-sm p-5">
       <h3 className="text-white font-bold mb-1">일별 금융투자 순매수/순매도 및 KOSPI 추이</h3>
       <p className="text-gray-400 text-xs mb-4">막대: 금융투자 순매수/순매도(억원) · 선: KOSPI 지수(pt)</p>
-      <div className="h-72">
+      <div className={compact ? 'h-40' : 'h-72'}>
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={chartData} barCategoryGap="15%">
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -111,7 +112,7 @@ export function DailyBarChart({ data }: ChartsProps) {
   );
 }
 
-export function CumulativeChart({ data }: ChartsProps) {
+export function CumulativeChart({ data, compact = false }: ChartsProps) {
   const chartData = data.map((d) => ({
     date: d.date.slice(5),
     cumulative: d.cumulative,
@@ -124,7 +125,7 @@ export function CumulativeChart({ data }: ChartsProps) {
     <div className="rounded-xl border border-gray-700/50 bg-gray-800/50 backdrop-blur-sm p-5">
       <h3 className="text-white font-bold mb-1">누적 순매수 추이</h3>
       <p className="text-gray-400 text-xs mb-4">Cumulative Net Position (억원)</p>
-      <div className="h-72">
+      <div className={compact ? 'h-40' : 'h-72'}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData}>
             <defs>
