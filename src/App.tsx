@@ -17,6 +17,7 @@ import {
   ForeignCorrelationChart,
 } from './components/Charts';
 import DataTable from './components/DataTable';
+import Benchmarking from './components/Benchmarking';
 import {
   Search,
   BarChart3,
@@ -25,9 +26,10 @@ import {
   Activity,
   Database,
   Zap,
+  Globe2,
 } from 'lucide-react';
 
-type TabId = 'overview' | 'charts' | 'streaks' | 'data';
+type TabId = 'overview' | 'charts' | 'streaks' | 'data' | 'benchmark';
 
 interface LatestTradingDataPayload {
   data?: DailyTradeData[];
@@ -138,9 +140,16 @@ export default function App() {
   }, []);
 
   const filteredData = useMemo(
-    () => (isAnalyzed ? filterByDateRange(tradingData, startDate, endDate) : []),
+    () => {
+      if (!isAnalyzed) return [];
+      const rangeStart = startDate <= endDate ? startDate : endDate;
+      const rangeEnd = startDate <= endDate ? endDate : startDate;
+      return filterByDateRange(tradingData, rangeStart, rangeEnd);
+    },
     [tradingData, startDate, endDate, isAnalyzed]
   );
+  const analyzedStartDate = startDate <= endDate ? startDate : endDate;
+  const analyzedEndDate = startDate <= endDate ? endDate : startDate;
 
   const stats = useMemo(
     () => calculateStats(filteredData),
@@ -203,6 +212,7 @@ export default function App() {
     { id: 'charts', label: '차트분석', icon: Activity },
     { id: 'streaks', label: '연속매도', icon: TrendingDown },
     { id: 'data', label: '데이터', icon: Database },
+    { id: 'benchmark', label: '벤치마킹', icon: Globe2 },
   ];
 
   return (
@@ -244,6 +254,8 @@ export default function App() {
                 <input
                   type="date"
                   value={startDate}
+                  min={earliestDataDate}
+                  max={latestDataDate}
                   onChange={(e) => {
                     setStartDate(e.target.value);
                     setIsAnalyzed(false);
@@ -259,6 +271,8 @@ export default function App() {
                 <input
                   type="date"
                   value={endDate}
+                  min={earliestDataDate}
+                  max={latestDataDate}
                   onChange={(e) => {
                     setEndDate(e.target.value);
                     setIsAnalyzed(false);
@@ -300,7 +314,7 @@ export default function App() {
           {/* Data info */}
           {isAnalyzed && (
             <div className="mt-3 flex items-center gap-4 text-xs text-gray-500">
-              <span>📊 분석 기간: {startDate} ~ {endDate}</span>
+              <span>📊 분석 기간: {analyzedStartDate} ~ {analyzedEndDate}</span>
               <span>📅 거래일수: {stats.tradingDays}일</span>
               <span className="text-emerald-400/80">🔄 {dataSource}</span>
               {dataUpdatedAt && <span>🕒 업데이트: {dataUpdatedAt}</span>}
@@ -473,6 +487,11 @@ export default function App() {
                 <StatCards stats={stats} />
                 <DataTable data={filteredData} />
               </div>
+            )}
+
+            {/* Benchmark Tab */}
+            {activeTab === 'benchmark' && (
+              <Benchmarking />
             )}
           </>
         )}

@@ -24,11 +24,11 @@ export default function StatCards({ stats }: StatCardsProps) {
       bg: stats.totalNetBuy >= 0 ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-rose-500/10 border-rose-500/20',
     },
     {
-      label: '평균 일별 순매수',
-      value: `${formatNumber(Math.round(stats.averageDailyNetBuy))}억`,
+      label: '매수비중',
+      value: `${stats.financialBuySharePct.toFixed(1)}%`,
       icon: BarChart3,
-      color: stats.averageDailyNetBuy >= 0 ? 'text-emerald-400' : 'text-rose-400',
-      bg: stats.averageDailyNetBuy >= 0 ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-rose-500/10 border-rose-500/20',
+      color: 'text-blue-400',
+      bg: 'bg-blue-500/10 border-blue-500/20',
     },
     {
       label: '순매수 일수',

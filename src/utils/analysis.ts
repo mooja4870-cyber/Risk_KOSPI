@@ -3,6 +3,7 @@ import type { DailyTradeData } from '../data/mockData';
 export interface StatsSummary {
   totalNetBuy: number;
   averageDailyNetBuy: number;
+  financialBuySharePct: number;
   netBuyDays: number;
   netSellDays: number;
   maxNetBuy: number;
@@ -39,6 +40,7 @@ export function calculateStats(data: DailyTradeData[]): StatsSummary {
     return {
       totalNetBuy: 0,
       averageDailyNetBuy: 0,
+      financialBuySharePct: 0,
       netBuyDays: 0,
       netSellDays: 0,
       maxNetBuy: 0,
@@ -51,6 +53,21 @@ export function calculateStats(data: DailyTradeData[]): StatsSummary {
   const values = data.map((d) => d.financialInvestment);
   const total = values.reduce((a, b) => a + b, 0);
   const mean = total / values.length;
+  const totalBuyAmount = data.reduce(
+    (sum, d) =>
+      sum +
+      Math.max(0, d.individual) +
+      Math.max(0, d.foreign) +
+      Math.max(0, d.institution) +
+      Math.max(0, d.otherCorporation),
+    0
+  );
+  const financialBuyAmount = data.reduce(
+    (sum, d) => sum + Math.max(0, d.financialInvestment),
+    0
+  );
+  const financialBuySharePct =
+    totalBuyAmount > 0 ? (financialBuyAmount / totalBuyAmount) * 100 : 0;
 
   const netBuyDays = values.filter((v) => v > 0).length;
   const netSellDays = values.filter((v) => v < 0).length;
@@ -65,6 +82,7 @@ export function calculateStats(data: DailyTradeData[]): StatsSummary {
   return {
     totalNetBuy: total,
     averageDailyNetBuy: mean,
+    financialBuySharePct,
     netBuyDays,
     netSellDays,
     maxNetBuy,
