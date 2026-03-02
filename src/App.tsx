@@ -374,8 +374,9 @@ export default function App() {
 
                 {/* Quick Charts */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <DailyBarChart data={chartData} compact />
-                  <CumulativeChart data={chartData} compact />
+                  <div className="lg:col-span-2">
+                    <DailyBarChart data={chartData} compact />
+                  </div>
                 </div>
 
                 {/* Stat Cards */}
