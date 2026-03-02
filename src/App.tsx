@@ -226,7 +226,7 @@ export default function App() {
       <div className="relative max-w-7xl mx-auto px-4 py-6">
         {/* Header */}
         <header className="mb-6">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
             <div className="flex items-center gap-3">
               <div className="p-1.5 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg shadow-blue-500/20">
                 <Zap className="w-5 h-5 text-white" />
@@ -297,11 +297,10 @@ export default function App() {
                     setEndDate(preset.end);
                     setIsAnalyzed(true);
                   }}
-                  className={`px-2 py-1 rounded-lg text-[10px] font-medium transition-all border ${
-                    startDate === preset.start && endDate === preset.end
+                  className={`px-2 py-1 rounded-lg text-[10px] font-medium transition-all border ${startDate === preset.start && endDate === preset.end
                       ? 'bg-blue-500/20 border-blue-500/40 text-blue-400'
                       : 'bg-gray-900/50 border-gray-700/50 text-gray-400 hover:border-gray-500 hover:text-gray-300'
-                  }`}
+                    }`}
                 >
                   {preset.label}
                 </button>
@@ -349,12 +348,11 @@ export default function App() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all whitespace-nowrap ${
-                    activeTab === tab.id
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all whitespace-nowrap ${activeTab === tab.id
                       ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white border border-blue-500/30'
                       : 'text-gray-400 hover:text-gray-300 hover:bg-gray-700/30'
-                  }`}
-                  style={{ fontSize: '133%', fontWeight: 700 }}
+                    }`}
+                  style={{ fontSize: '102%', fontWeight: 700 }}
                 >
                   <tab.icon className="w-4 h-4" />
                   {tab.label}
