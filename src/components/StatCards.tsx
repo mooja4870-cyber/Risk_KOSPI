@@ -120,14 +120,26 @@ export default function StatCards({ stats }: StatCardsProps) {
                 매수금액 + 비중(%) 세부내역
               </div>
               <div className="space-y-2">
-                {buyDetailRows.map((row) => (
-                  <div key={row.label} className="flex items-center justify-between border-b border-slate-800 pb-1 text-xs last:border-0 last:pb-0">
-                    <span className="font-medium text-slate-300">{row.label}</span>
-                    <span className="font-mono font-bold text-white">
-                      {row.label === '총매수' ? `${formatAmount(row.value)} (100.0%)` : formatAmountWithPct(row.value)}
-                    </span>
-                  </div>
-                ))}
+                {buyDetailRows.map((row) => {
+                  const isFinancialInvestment = row.label === '금융투자';
+                  return (
+                    <div
+                      key={row.label}
+                      className={`flex items-center justify-between border-b pb-1 text-xs last:border-0 last:pb-0 ${
+                        isFinancialInvestment
+                          ? 'rounded-md border-cyan-400/40 bg-cyan-500/15 px-2 py-1 ring-1 ring-cyan-300/30'
+                          : 'border-slate-800'
+                      }`}
+                    >
+                      <span className={`font-medium ${isFinancialInvestment ? 'text-cyan-200' : 'text-slate-300'}`}>
+                        {row.label}
+                      </span>
+                      <span className={`font-mono font-bold ${isFinancialInvestment ? 'text-cyan-100' : 'text-white'}`}>
+                        {row.label === '총매수' ? `${formatAmount(row.value)} (100.0%)` : formatAmountWithPct(row.value)}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
               <div className="mt-3 border-t border-slate-800 pt-2 text-[10px] italic text-slate-400">
                 * 각 투자자별 순수 매수량의 합계입니다.
