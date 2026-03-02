@@ -14,7 +14,7 @@ import {
   Legend,
   Cell,
 } from 'recharts';
-import { formatNumber } from '../utils/analysis';
+import { formatNumber, formatDateKR } from '../utils/analysis';
 
 interface ChartDataPoint {
   date: string;
@@ -34,7 +34,7 @@ interface ChartsProps {
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
-    const formattedDate = typeof label === 'string' ? label.replace(/-/g, '.') : label;
+    const formattedDate = typeof label === 'string' ? formatDateKR(label) : label;
     return (
       <div className="bg-gray-900/95 border border-gray-700 rounded-lg p-3 shadow-xl backdrop-blur-sm">
         <p className="text-gray-400 text-xs mb-2 font-mono font-medium">{formattedDate}</p>
