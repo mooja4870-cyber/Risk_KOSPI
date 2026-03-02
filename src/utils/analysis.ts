@@ -29,6 +29,7 @@ export interface ConsecutiveSellInfo {
   highRiskStreakCount: number;
   repeatStrength: number;
   structuralCoveragePct: number;
+  currentStreakAmount: number;
 }
 
 export interface RiskAssessment {
@@ -195,13 +196,18 @@ export function detectConsecutiveSells(
     streaks: structuralStreaks.sort((a, b) => b.days - a.days),
     currentStreak:
       sorted.length > 0 &&
-      sorted[sorted.length - 1].financialInvestment < 0
+        sorted[sorted.length - 1].financialInvestment < 0
         ? currentStreak
         : 0,
     structuralStreakCount: structuralStreaks.length,
     highRiskStreakCount,
     repeatStrength,
     structuralCoveragePct,
+    currentStreakAmount:
+      sorted.length > 0 &&
+        sorted[sorted.length - 1].financialInvestment < 0
+        ? streakAmount
+        : 0,
   };
 }
 

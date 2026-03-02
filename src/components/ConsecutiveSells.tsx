@@ -1,5 +1,5 @@
 import type { ConsecutiveSellInfo } from '../utils/analysis';
-import { formatNumber, formatDateKR } from '../utils/analysis';
+import { formatNumber } from '../utils/analysis';
 import { Flame, AlertTriangle, TrendingDown } from 'lucide-react';
 
 interface Props {
@@ -7,87 +7,59 @@ interface Props {
 }
 
 export default function ConsecutiveSells({ info }: Props) {
-  const getRiskBadge = (days: number) => {
-    if (days >= 7)
-      return { label: '고위험', color: 'bg-rose-500/20 text-rose-400 border-rose-500/30' };
-    if (days >= 5)
-      return { label: '위험', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' };
-    return { label: '주의', color: 'bg-amber-500/20 text-amber-400 border-amber-500/30' };
-  };
+  const isCurrentlySelling = info.currentStreak > 0;
 
   return (
-    <div className="rounded-xl border border-gray-700/50 bg-gray-800/50 backdrop-blur-sm p-5">
-      <div className="flex items-center gap-3 mb-4">
+    <div className="rounded-xl border border-gray-700/50 bg-gray-800/50 backdrop-blur-sm p-5 flex flex-col h-full">
+      <div className="flex items-center gap-3 mb-6">
         <div className="p-2 rounded-lg bg-rose-500/20">
           <Flame className="w-5 h-5 text-rose-400" />
         </div>
         <div>
           <h3 className="text-white font-bold">연속 순매도 감지</h3>
-          <p className="text-gray-400 text-xs">Consecutive Net Selling Detection</p>
+          <p className="text-gray-400 text-xs">종료일 기준 연속 매도 추적</p>
         </div>
       </div>
 
-      {/* Summary */}
-      <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="bg-gray-900/50 rounded-lg p-3 border border-gray-700/30">
-          <div className="text-xs text-gray-500 mb-1">최대 연속 순매도</div>
-          <div className="text-2xl font-bold text-rose-400">{info.maxStreak}일</div>
-        </div>
-        <div className="bg-gray-900/50 rounded-lg p-3 border border-gray-700/30">
-          <div className="text-xs text-gray-500 mb-1">연속 순매도 반복 강도</div>
-          <div className="text-2xl font-bold text-amber-400">{info.repeatStrength}</div>
-          <div className="text-[11px] text-gray-500 mt-0.5">
-            3일+ 구간 {info.structuralStreakCount}회 · 점유율 {info.structuralCoveragePct.toFixed(1)}%
-          </div>
-        </div>
-      </div>
-
-      {/* Current streak warning */}
-      {info.currentStreak >= 3 && (
-        <div className="mb-4 p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
-          <span className="text-sm text-rose-300">
-            종료일 기준 <strong>{info.currentStreak}일</strong> 연속 순매도 진행 중
-          </span>
-        </div>
-      )}
-
-      {/* Streaks list */}
-      {info.streaks.length > 0 ? (
-        <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-          {info.streaks.slice(0, 10).map((streak, i) => {
-            const badge = getRiskBadge(streak.days);
-            return (
-              <div
-                key={i}
-                className="flex items-center justify-between p-3 rounded-lg bg-gray-900/40 border border-gray-700/30 hover:border-gray-600/50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <TrendingDown className="w-4 h-4 text-rose-400" />
-                  <div>
-                    <div className="text-sm text-white font-medium">
-                      {formatDateKR(streak.startDate)} ~ {formatDateKR(streak.endDate)}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      총 {formatNumber(streak.totalAmount)}억
-                    </div>
-                  </div>
+      <div className="flex-1 flex flex-col items-center justify-center text-center">
+        {isCurrentlySelling ? (
+          <>
+            <div className="mb-4 relative">
+              <div className="absolute inset-0 bg-rose-500/20 blur-2xl rounded-full" />
+              <div className="relative bg-gray-900 border border-rose-500/30 rounded-2xl px-8 py-6 shadow-2xl">
+                <div className="text-gray-400 text-xs font-medium mb-1">현재 연속 매도</div>
+                <div className="text-5xl font-black text-rose-500 mb-2">
+                  {info.currentStreak}<span className="text-2xl ml-1 font-bold">일</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-rose-400">{streak.days}일</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full border ${badge.color}`}>
-                    {badge.label}
-                  </span>
+                <div className="text-sm font-mono text-rose-300 font-semibold bg-rose-500/10 px-3 py-1 rounded-full border border-rose-500/20">
+                  총 {formatNumber(Math.round(info.currentStreakAmount))}억
                 </div>
               </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="text-center text-gray-500 py-6 text-sm">
-          3일 이상 연속 순매도 구간이 없습니다
-        </div>
-      )}
+            </div>
+            <div className="flex items-center gap-2 text-rose-400/80 animate-pulse">
+              <AlertTriangle className="w-4 h-4" />
+              <span className="text-sm font-medium">종료일 포함 매도세 지속 중</span>
+            </div>
+          </>
+        ) : (
+          <div className="space-y-4">
+            <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto border border-emerald-500/20">
+              <TrendingDown className="w-8 h-8 text-emerald-500 rotate-180" />
+            </div>
+            <div>
+              <div className="text-emerald-400 font-bold text-lg">연속 매도세 끊김</div>
+              <p className="text-gray-500 text-sm mt-1">
+                종료일 매도세가 없거나<br />매수세로 전환되었습니다.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-6 pt-4 border-t border-gray-700/30 text-[11px] text-gray-500">
+        <p>• 선택한 기간의 '종료일'이 금융투자 순매도일 경우만 계산합니다.</p>
+        <p>• 종료일부터 과거로 소급하여 매수 전환 전까지의 일수입니다.</p>
+      </div>
     </div>
   );
 }
