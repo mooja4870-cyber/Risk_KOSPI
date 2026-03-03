@@ -303,7 +303,7 @@ export default function Benchmarking({
                   실측 데이터 추세 (2008-09 ~ 2008-10)
                 </div>
                 <div className="bg-gray-900/40 rounded-xl overflow-hidden border border-gray-700/30">
-                  <DailyBarChart data={benchmark2008Data} compact />
+                  <DailyBarChart data={benchmark2008Data} compact crashDate="2008-09-15" />
                 </div>
               </div>
             )}

@@ -31,6 +31,7 @@ interface ChartDataPoint {
 interface ChartsProps {
   data: ChartDataPoint[];
   compact?: boolean;
+  crashDate?: string; // 충격일 수직선 표시 (YYYY-MM-DD)
 }
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -53,7 +54,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-export function DailyBarChart({ data, compact = false }: ChartsProps) {
+export function DailyBarChart({ data, compact = false, crashDate }: ChartsProps) {
   const chartData = data.map((d) => ({
     date: d.date,
     value: d.value,
@@ -93,6 +94,14 @@ export function DailyBarChart({ data, compact = false }: ChartsProps) {
             <Tooltip content={<CustomTooltip />} />
             <Legend wrapperStyle={{ fontSize: '12px' }} />
             <ReferenceLine y={0} stroke="#6b7280" />
+            {crashDate && (
+              <ReferenceLine
+                x={crashDate}
+                stroke="#f43f5e"
+                strokeDasharray="4 4"
+                label={{ value: '충격일', fill: '#f87171', fontSize: 10, position: 'insideTopRight' }}
+              />
+            )}
             <Bar yAxisId="flow" dataKey="value" name="금융투자" radius={[2, 2, 0, 0]}>
               {chartData.map((entry, index) => (
                 <Cell key={index} fill={entry.fill} />
