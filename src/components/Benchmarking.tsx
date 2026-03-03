@@ -127,6 +127,13 @@ export default function Benchmarking({
     return calculateMovingAverages(filtered);
   }, [allData]);
 
+  const benchmark1998Data = useMemo(() => {
+    const start = '1997-11-01';
+    const end = '1998-12-31';
+    const filtered = filterByDateRange(allData, start, end);
+    return calculateMovingAverages(filtered);
+  }, [allData]);
+
   const benchmarkCases: BenchmarkCase[] = [
     {
       market: '한국',
@@ -303,6 +310,18 @@ export default function Benchmarking({
                 </div>
                 <div className="bg-gray-900/40 rounded-xl overflow-hidden border border-gray-700/30">
                   <DailyBarChart data={benchmark2008Data} compact />
+                </div>
+              </div>
+            )}
+
+            {item.title.includes('1998') && benchmark1998Data.length > 0 && (
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-3 text-white font-semibold text-sm">
+                  <TrendingDown className="w-4 h-4 text-rose-400" />
+                  실측 데이터 추세 (1997-11 ~ 1998-12)
+                </div>
+                <div className="bg-gray-900/40 rounded-xl overflow-hidden border border-gray-700/30">
+                  <DailyBarChart data={benchmark1998Data} compact />
                 </div>
               </div>
             )}

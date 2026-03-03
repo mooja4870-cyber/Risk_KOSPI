@@ -10,8 +10,8 @@ from bs4 import BeautifulSoup
 
 DETAIL_TREND_URL = "https://finance.naver.com/sise/investorDealTrendDay.nhn"
 KOSPI_INDEX_URL = "https://finance.naver.com/sise/sise_index_day.nhn"
-HISTORICAL_START_DATE = "2005-01-03"
-BOOTSTRAP_MAX_PAGES = 700
+HISTORICAL_START_DATE = "1997-01-01"
+BOOTSTRAP_MAX_PAGES = 1200
 RECENT_REFRESH_PAGES = 20
 
 HEADERS = {
@@ -234,11 +234,24 @@ def main() -> None:
 
     fetched_map = fetch_detail_trend_map(max_pages=max_pages, min_date=HISTORICAL_START_DATE)
     kospi_map = fetch_kospi_close_map(max_pages=max_pages_kospi, min_date=HISTORICAL_START_DATE)
-    merged_map = {
-        date: row
-        for date, row in {**existing_map, **fetched_map}.items()
-        if date >= HISTORICAL_START_DATE
-    }
+    all_dates = sorted(set(existing_map.keys()) | set(fetched_map.keys()) | set(kospi_map.keys()))
+    merged_map = {}
+    for date in all_dates:
+        if date < HISTORICAL_START_DATE:
+            continue
+        
+        row = existing_map.get(date, {}).copy()
+        row.update(fetched_map.get(date, {}))
+        
+        # Ensure all fields exist
+        row.setdefault("date", date)
+        for field in ["individual", "foreign", "institution", "financialInvestment", 
+                      "insurance", "investmentTrust", "bank", "otherFinancial", 
+                      "pension", "otherCorporation"]:
+            row.setdefault(field, 0)
+        
+        row["kospiClose"] = kospi_map.get(date, row.get("kospiClose"))
+        merged_map[date] = row
 
     if not merged_map:
         raise RuntimeError("No investor detail data returned")
