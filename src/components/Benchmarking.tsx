@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
 import { BookOpen, ExternalLink, Globe2, TrendingDown } from 'lucide-react';
 import type { DailyTradeData } from '../data/mockData';
-import { DailyBarChart } from './Charts';
+import { DailyBarChart, IndexLineChart } from './Charts';
 import { calculateMovingAverages, filterByDateRange } from '../utils/analysis';
+import { sp500BlackMonday1987, sp500FlashCrash2010 } from '../data/benchmarkStaticData';
 
 interface BenchmarkingProps {
   selectedData: DailyTradeData[];
@@ -322,6 +323,40 @@ export default function Benchmarking({
                 </div>
                 <div className="bg-gray-900/40 rounded-xl overflow-hidden border border-gray-700/30">
                   <DailyBarChart data={benchmark1998Data} compact />
+                </div>
+              </div>
+            )}
+
+            {item.title.includes('1987') && sp500BlackMonday1987.length > 0 && (
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-3 text-white font-semibold text-sm">
+                  <TrendingDown className="w-4 h-4 text-amber-400" />
+                  실측 데이터 추세 (S&P500 1987-09 ~ 1987-12)
+                </div>
+                <div className="bg-gray-900/40 rounded-xl overflow-hidden border border-gray-700/30">
+                  <IndexLineChart
+                    data={sp500BlackMonday1987}
+                    indexLabel="S&P500"
+                    crashDate="1987-10-19"
+                    color="#f59e0b"
+                  />
+                </div>
+              </div>
+            )}
+
+            {item.title.includes('2010') && sp500FlashCrash2010.length > 0 && (
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-3 text-white font-semibold text-sm">
+                  <TrendingDown className="w-4 h-4 text-amber-400" />
+                  실측 데이터 추세 (S&P500 2010-04 ~ 2010-06)
+                </div>
+                <div className="bg-gray-900/40 rounded-xl overflow-hidden border border-gray-700/30">
+                  <IndexLineChart
+                    data={sp500FlashCrash2010}
+                    indexLabel="S&P500"
+                    crashDate="2010-05-06"
+                    color="#f59e0b"
+                  />
                 </div>
               </div>
             )}

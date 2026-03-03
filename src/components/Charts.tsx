@@ -15,6 +15,7 @@ import {
   Cell,
 } from 'recharts';
 import { formatNumber, formatDateKR } from '../utils/analysis';
+import type { IndexDataPoint } from '../data/benchmarkStaticData';
 
 interface ChartDataPoint {
   date: string;
@@ -301,6 +302,88 @@ export function ForeignCorrelationChart({ data }: ChartsProps) {
               connectNulls={false}
             />
           </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+// ── 해외지수 전용 선 차트 (S&P500, DJIA 등) ──────────────────────────────────
+interface IndexLineChartProps {
+  data: IndexDataPoint[];
+  indexLabel: string;  // 범례 표시명 (예: "S&P500", "DJIA")
+  crashDate?: string;  // 기준일 (수직선): 예 "1987-10-19"
+  color?: string;
+}
+
+const IndexTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-gray-900/95 border border-gray-700 rounded-lg p-3 shadow-xl">
+        <p className="text-gray-400 text-xs mb-1 font-mono">{label}</p>
+        {payload.map((p: any, i: number) => (
+          <p key={i} className="text-sm" style={{ color: p.color }}>
+            {p.name}: {Number(p.value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
+
+export function IndexLineChart({ data, indexLabel, crashDate, color = '#f59e0b' }: IndexLineChartProps) {
+  const isPositive = data.length > 1 && data[data.length - 1].close >= data[0].close;
+  const areaColor = isPositive ? '#10b981' : '#f43f5e';
+
+  return (
+    <div className="rounded-xl border border-gray-700/50 bg-gray-800/50 backdrop-blur-sm p-5">
+      <h3 className="text-white font-bold mb-1">{indexLabel} 지수 추이</h3>
+      <p className="text-gray-400 text-xs mb-4">선: {indexLabel} 종가</p>
+      <div className="h-[300px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={data}>
+            <defs>
+              <linearGradient id={`indexGrad-${indexLabel}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={areaColor} stopOpacity={0.25} />
+                <stop offset="95%" stopColor={areaColor} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+            <XAxis
+              dataKey="date"
+              tick={{ fill: '#9ca3af', fontSize: 10 }}
+              tickFormatter={(s: string) => s ? s.slice(5) : ''}
+              interval={Math.max(Math.floor(data.length / 10), 0)}
+              axisLine={{ stroke: '#4b5563' }}
+            />
+            <YAxis
+              tick={{ fill: '#9ca3af', fontSize: 10 }}
+              axisLine={{ stroke: '#4b5563' }}
+              tickFormatter={(v: number) => v.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+              domain={['auto', 'auto']}
+            />
+            <Tooltip content={<IndexTooltip />} />
+            <Legend wrapperStyle={{ fontSize: '12px' }} />
+            {crashDate && (
+              <ReferenceLine
+                x={crashDate}
+                stroke="#f43f5e"
+                strokeDasharray="4 4"
+                label={{ value: '충격일', fill: '#f87171', fontSize: 10 }}
+              />
+            )}
+            <Area
+              type="monotone"
+              dataKey="close"
+              name={indexLabel}
+              stroke={color}
+              fill={`url(#indexGrad-${indexLabel})`}
+              strokeWidth={2}
+              dot={false}
+              connectNulls
+            />
+          </AreaChart>
         </ResponsiveContainer>
       </div>
     </div>
