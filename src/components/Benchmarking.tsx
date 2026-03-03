@@ -318,7 +318,7 @@ export default function Benchmarking({
                   <IndexLineChart
                     data={kospiIMFCrisis1998}
                     indexLabel="KOSPI"
-                    crashDate="1997-12-12"
+                    crashDate="1997-11-21"
                     color="#22d3ee"
                   />
                 </div>
