@@ -1,15 +1,12 @@
 import { useMemo } from 'react';
-import { BookOpen, ExternalLink, Globe2, TrendingDown } from 'lucide-react';
+import { BookOpen, ExternalLink, TrendingDown } from 'lucide-react';
 import type { DailyTradeData } from '../data/mockData';
 import { DailyBarChart, IndexLineChart } from './Charts';
 import { calculateMovingAverages, filterByDateRange } from '../utils/analysis';
 import { sp500BlackMonday1987, sp500FlashCrash2010, kospiIMFCrisis1998 } from '../data/benchmarkStaticData';
 
 interface BenchmarkingProps {
-  selectedData: DailyTradeData[];
   allData: DailyTradeData[];
-  selectedStart: string;
-  selectedEnd: string;
 }
 
 interface BenchmarkCase {
@@ -22,83 +19,14 @@ interface BenchmarkCase {
   sources: { label: string; url: string }[];
 }
 
-interface SellSummary {
-  negativeDays: number;
-  negativeRatioPct: number;
-  worstSingleDay: { date: string; amount: number };
-  longestStreak: { startDate: string; endDate: string; days: number; totalAmount: number };
-}
-
 function formatSignedEok(value: number): string {
   const abs = Math.abs(Math.round(value)).toLocaleString('ko-KR');
   return `${value > 0 ? '+' : value < 0 ? '-' : ''}${abs}억`;
 }
 
-function summarizeFinancialSell(data: DailyTradeData[]): SellSummary {
-  if (data.length === 0) {
-    return {
-      negativeDays: 0,
-      negativeRatioPct: 0,
-      worstSingleDay: { date: '-', amount: 0 },
-      longestStreak: { startDate: '-', endDate: '-', days: 0, totalAmount: 0 },
-    };
-  }
-
-  const sorted = [...data].sort((a, b) => a.date.localeCompare(b.date));
-  const negativeDays = sorted.filter((row) => row.financialInvestment < 0).length;
-
-  let worstSingleDay = sorted[0];
-  for (const row of sorted) {
-    if (row.financialInvestment < worstSingleDay.financialInvestment) {
-      worstSingleDay = row;
-    }
-  }
-
-  let bestStreak: SellSummary['longestStreak'] = { startDate: '-', endDate: '-', days: 0, totalAmount: 0 };
-  let currentStart = '';
-  let currentDays = 0;
-  let currentAmount = 0;
-
-  for (const row of sorted) {
-    if (row.financialInvestment < 0) {
-      if (currentDays === 0) {
-        currentStart = row.date;
-      }
-      currentDays += 1;
-      currentAmount += row.financialInvestment;
-      if (currentDays > bestStreak.days) {
-        bestStreak = {
-          startDate: currentStart,
-          endDate: row.date,
-          days: currentDays,
-          totalAmount: currentAmount,
-        };
-      }
-    } else {
-      currentDays = 0;
-      currentAmount = 0;
-      currentStart = '';
-    }
-  }
-
-  return {
-    negativeDays,
-    negativeRatioPct: (negativeDays / sorted.length) * 100,
-    worstSingleDay: {
-      date: worstSingleDay.date,
-      amount: worstSingleDay.financialInvestment,
-    },
-    longestStreak: bestStreak,
-  };
-}
-
 function marketBadge(market: BenchmarkCase['market']): string {
   if (market === '한국') return 'bg-blue-500/15 text-blue-300 border-blue-500/30';
   return 'bg-rose-500/15 text-rose-300 border-rose-500/30';
-}
-
-function findByDate(data: DailyTradeData[], date: string): DailyTradeData | undefined {
-  return data.find((row) => row.date === date);
 }
 
 function findWorstFinancialSellInYear(data: DailyTradeData[], year: string): DailyTradeData | undefined {
@@ -110,16 +38,9 @@ function findWorstFinancialSellInYear(data: DailyTradeData[], year: string): Dai
 }
 
 export default function Benchmarking({
-  selectedData,
   allData,
-  selectedStart,
-  selectedEnd,
 }: BenchmarkingProps) {
-  const summary = summarizeFinancialSell(selectedData);
-  const earliestAvailable = allData[0]?.date ?? '-';
-  const latestAvailable = allData[allData.length - 1]?.date ?? '-';
   const kr2008WorstSellDay = findWorstFinancialSellInYear(allData, '2008');
-  const kr2008CrashDay = findByDate(allData, '2008-10-24');
 
   const benchmark2008Data = useMemo(() => {
     const start = '2008-09-01';
@@ -217,54 +138,6 @@ export default function Benchmarking({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-gray-700/50 bg-gray-800/50 backdrop-blur-sm p-3 sm:p-5">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="p-1.5 sm:p-2 rounded-lg bg-cyan-500/20">
-            <Globe2 className="w-4 h-4 sm:w-5 h-5 text-cyan-300" />
-          </div>
-          <div>
-            <h3 className="text-sm sm:text-base text-white font-bold">벤치마킹: 금융투자 집중매도</h3>
-            <p className="text-gray-400 text-[10px] sm:text-xs">
-              금융투자(증권사) 순매도를 핵심 변수로 분석합니다.
-            </p>
-          </div>
-        </div>
-        <div className="text-[11px] sm:text-sm text-gray-300 space-y-1">
-          <p>
-            분석 구간: <span className="text-cyan-300">{selectedStart} ~ {selectedEnd}</span>
-          </p>
-          <p>
-            데이터 범위: <span className="text-gray-400">{earliestAvailable} ~ {latestAvailable}</span>
-          </p>
-          {kr2008CrashDay && (
-            <p className="text-[10px] text-amber-300/80 italic">
-              * 2008-10-24 기록: 금융투자 {formatSignedEok(kr2008CrashDay.financialInvestment)}
-            </p>
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
-        <div className="rounded-lg bg-gray-900/50 border border-gray-700/40 p-2 sm:p-3">
-          <div className="text-gray-400 text-[10px] sm:text-xs mb-0.5 sm:mb-1">매도일 비중</div>
-          <div className="text-rose-300 font-bold text-sm sm:text-lg">
-            {summary.negativeRatioPct.toFixed(1)}% <span className="text-[10px] sm:text-xs font-normal">({summary.negativeDays}일)</span>
-          </div>
-        </div>
-        <div className="rounded-lg bg-gray-900/50 border border-gray-700/40 p-2 sm:p-3">
-          <div className="text-gray-400 text-[10px] sm:text-xs mb-0.5 sm:mb-1">최대 단일 순매도</div>
-          <div className="text-rose-300 font-bold text-sm sm:text-lg">{formatSignedEok(summary.worstSingleDay.amount)}</div>
-        </div>
-        <div className="rounded-lg bg-gray-900/50 border border-gray-700/40 p-2 sm:p-3">
-          <div className="text-gray-400 text-[10px] sm:text-xs mb-0.5 sm:mb-1">최장 연속 매도</div>
-          <div className="text-rose-300 font-bold text-sm sm:text-lg">{summary.longestStreak.days}일</div>
-          <div className="text-gray-500 text-[9px] sm:text-xs mt-0.5 truncate">{summary.longestStreak.startDate.slice(5)} ~ {summary.longestStreak.endDate.slice(5)}</div>
-        </div>
-        <div className="rounded-lg bg-gray-900/50 border border-gray-700/40 p-2 sm:p-3">
-          <div className="text-gray-400 text-[10px] sm:text-xs mb-0.5 sm:mb-1">연속구간 누적</div>
-          <div className="text-rose-300 font-bold text-sm sm:text-lg">{formatSignedEok(summary.longestStreak.totalAmount)}</div>
-        </div>
-      </div>
 
 
       {benchmarkCases.map((item) => (
