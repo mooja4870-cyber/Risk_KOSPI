@@ -1,5 +1,8 @@
-import { BookOpen, ExternalLink, Globe2 } from 'lucide-react';
+import { useMemo } from 'react';
+import { BookOpen, ExternalLink, Globe2, TrendingDown } from 'lucide-react';
 import type { DailyTradeData } from '../data/mockData';
+import { DailyBarChart } from './Charts';
+import { calculateMovingAverages, filterByDateRange } from '../utils/analysis';
 
 interface BenchmarkingProps {
   selectedData: DailyTradeData[];
@@ -116,6 +119,13 @@ export default function Benchmarking({
   const latestAvailable = allData[allData.length - 1]?.date ?? '-';
   const kr2008WorstSellDay = findWorstFinancialSellInYear(allData, '2008');
   const kr2008CrashDay = findByDate(allData, '2008-10-24');
+
+  const benchmark2008Data = useMemo(() => {
+    const start = '2008-09-01';
+    const end = '2008-10-31';
+    const filtered = filterByDateRange(allData, start, end);
+    return calculateMovingAverages(filtered);
+  }, [allData]);
 
   const benchmarkCases: BenchmarkCase[] = [
     {
@@ -284,10 +294,22 @@ export default function Benchmarking({
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-gray-700/40">
+          <div className="mt-4 pt-4 border-t border-gray-700/40">
+            {item.title.includes('2008') && benchmark2008Data.length > 0 && (
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-3 text-white font-semibold text-sm">
+                  <TrendingDown className="w-4 h-4 text-rose-400" />
+                  실측 데이터 추세 (2008-09 ~ 2008-10)
+                </div>
+                <div className="bg-gray-900/40 rounded-xl overflow-hidden border border-gray-700/30">
+                  <DailyBarChart data={benchmark2008Data} compact />
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center gap-2 text-xs text-gray-400 mb-2">
               <BookOpen className="w-3.5 h-3.5" />
-              출처
+              세부내역
             </div>
             <div className="flex flex-col gap-1.5">
               {item.sources.map((source) => (
