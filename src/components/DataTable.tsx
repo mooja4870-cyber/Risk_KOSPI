@@ -26,8 +26,8 @@ export default function DataTable({ data }: Props) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-700 sticky top-0 bg-gray-800 z-10">
-              <th className="text-left text-gray-400 font-medium py-2 px-2 text-[10px] sm:text-xs w-[1%] whitespace-nowrap">날짜</th>
-              <th className="text-right text-gray-400 font-medium py-2 px-2 text-[10px] sm:text-xs w-[1%] whitespace-nowrap">코스피</th>
+              <th className="text-left text-gray-400 font-medium py-2 pl-2 pr-[5px] text-[10px] sm:text-xs w-[1%] whitespace-nowrap">날짜</th>
+              <th className="text-right text-gray-400 font-medium py-2 pl-[5px] pr-2 text-[10px] sm:text-xs w-[1%] whitespace-nowrap">코스피</th>
               <th className="text-right text-gray-400 font-medium py-2 px-2 text-[10px] sm:text-xs">개인</th>
               <th className="text-right text-gray-400 font-medium py-2 px-2 text-[10px] sm:text-xs">외국인</th>
               <th className="text-right text-gray-400 font-medium py-2 px-2 text-[10px] sm:text-xs whitespace-nowrap">금융투자</th>
@@ -46,10 +46,10 @@ export default function DataTable({ data }: Props) {
                   key={row.date}
                   className="border-b border-gray-700/30 hover:bg-gray-700/20 transition-colors"
                 >
-                  <td className="py-2 px-2 text-gray-300 text-[10px] sm:text-xs whitespace-nowrap w-[1%]">
+                  <td className="py-2 pl-2 pr-[5px] text-gray-300 text-[10px] sm:text-xs whitespace-nowrap w-[1%]">
                     {formatDateKR(row.date)}
                   </td>
-                  <td className={`py-2 px-2 text-right text-[10px] sm:text-xs font-mono whitespace-nowrap w-[1%] ${kospiColor}`}>
+                  <td className={`py-2 pl-[5px] pr-2 text-right text-[10px] sm:text-xs font-mono whitespace-nowrap w-[1%] ${kospiColor}`}>
                     {row.kospiClose?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) ?? '-'}
                   </td>
                   <td
