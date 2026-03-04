@@ -37,55 +37,60 @@ export default function DataTable({ data }: Props) {
             </tr>
           </thead>
           <tbody>
-            {sorted.map((row) => (
-              <tr
-                key={row.date}
-                className="border-b border-gray-700/30 hover:bg-gray-700/20 transition-colors"
-              >
-                <td className="py-2 px-2 text-gray-300 text-[10px] sm:text-xs whitespace-nowrap">
-                  {formatDateKR(row.date)}
-                </td>
-                <td className="py-2 px-2 text-right text-[10px] sm:text-xs font-mono text-yellow-300 whitespace-nowrap">
-                  {row.kospiClose?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) ?? '-'}
-                </td>
-                <td
-                  className={`py-2 px-2 text-right text-[10px] sm:text-xs font-mono ${row.individual >= 0 ? 'text-emerald-400' : 'text-rose-400'
-                    }`}
+            {sorted.map((row, idx) => {
+              const prevClose = idx < sorted.length - 1 ? sorted[idx + 1].kospiClose : undefined;
+              const kospiChange = (row.kospiClose != null && prevClose != null) ? row.kospiClose - prevClose : 0;
+              const kospiColor = kospiChange > 0 ? 'text-red-500' : kospiChange < 0 ? 'text-blue-400' : 'text-gray-400';
+              return (
+                <tr
+                  key={row.date}
+                  className="border-b border-gray-700/30 hover:bg-gray-700/20 transition-colors"
                 >
-                  {formatNumber(row.individual)}
-                </td>
-                <td
-                  className={`py-2 px-2 text-right text-[10px] sm:text-xs font-mono ${row.foreign >= 0 ? 'text-emerald-400' : 'text-rose-400'
-                    }`}
-                >
-                  {formatNumber(row.foreign)}
-                </td>
-                <td
-                  className={`py-2 px-2 text-right text-[10px] sm:text-xs font-mono font-bold ${row.financialInvestment >= 0 ? 'text-emerald-400' : 'text-rose-400'
-                    }`}
-                >
-                  {formatNumber(row.financialInvestment)}
-                </td>
-                <td
-                  className={`py-2 px-2 text-right text-[10px] sm:text-xs font-mono hidden md:table-cell ${row.insurance >= 0 ? 'text-emerald-400' : 'text-rose-400'
-                    }`}
-                >
-                  {formatNumber(row.insurance)}
-                </td>
-                <td
-                  className={`py-2 px-2 text-right text-[10px] sm:text-xs font-mono hidden md:table-cell ${row.investmentTrust >= 0 ? 'text-emerald-400' : 'text-rose-400'
-                    }`}
-                >
-                  {formatNumber(row.investmentTrust)}
-                </td>
-                <td
-                  className={`py-2 px-2 text-right text-[10px] sm:text-xs font-mono hidden sm:table-cell ${row.pension >= 0 ? 'text-emerald-400' : 'text-rose-400'
-                    }`}
-                >
-                  {formatNumber(row.pension)}
-                </td>
-              </tr>
-            ))}
+                  <td className="py-2 px-2 text-gray-300 text-[10px] sm:text-xs whitespace-nowrap">
+                    {formatDateKR(row.date)}
+                  </td>
+                  <td className={`py-2 px-2 text-right text-[10px] sm:text-xs font-mono whitespace-nowrap ${kospiColor}`}>
+                    {row.kospiClose?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) ?? '-'}
+                  </td>
+                  <td
+                    className={`py-2 px-2 text-right text-[10px] sm:text-xs font-mono ${row.individual >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                      }`}
+                  >
+                    {formatNumber(row.individual)}
+                  </td>
+                  <td
+                    className={`py-2 px-2 text-right text-[10px] sm:text-xs font-mono ${row.foreign >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                      }`}
+                  >
+                    {formatNumber(row.foreign)}
+                  </td>
+                  <td
+                    className={`py-2 px-2 text-right text-[10px] sm:text-xs font-mono font-bold ${row.financialInvestment >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                      }`}
+                  >
+                    {formatNumber(row.financialInvestment)}
+                  </td>
+                  <td
+                    className={`py-2 px-2 text-right text-[10px] sm:text-xs font-mono hidden md:table-cell ${row.insurance >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                      }`}
+                  >
+                    {formatNumber(row.insurance)}
+                  </td>
+                  <td
+                    className={`py-2 px-2 text-right text-[10px] sm:text-xs font-mono hidden md:table-cell ${row.investmentTrust >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                      }`}
+                  >
+                    {formatNumber(row.investmentTrust)}
+                  </td>
+                  <td
+                    className={`py-2 px-2 text-right text-[10px] sm:text-xs font-mono hidden sm:table-cell ${row.pension >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                      }`}
+                  >
+                    {formatNumber(row.pension)}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
 
         </table>
