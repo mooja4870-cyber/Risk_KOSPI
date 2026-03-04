@@ -27,6 +27,7 @@ export default function DataTable({ data }: Props) {
           <thead>
             <tr className="border-b border-gray-700 sticky top-0 bg-gray-800 z-10">
               <th className="text-left text-gray-400 font-medium py-2 px-2 text-[10px] sm:text-xs">날짜</th>
+              <th className="text-right text-gray-400 font-medium py-2 px-2 text-[10px] sm:text-xs whitespace-nowrap">코스피</th>
               <th className="text-right text-gray-400 font-medium py-2 px-2 text-[10px] sm:text-xs">개인</th>
               <th className="text-right text-gray-400 font-medium py-2 px-2 text-[10px] sm:text-xs">외국인</th>
               <th className="text-right text-gray-400 font-medium py-2 px-2 text-[10px] sm:text-xs whitespace-nowrap">금융투자</th>
@@ -43,6 +44,9 @@ export default function DataTable({ data }: Props) {
               >
                 <td className="py-2 px-2 text-gray-300 text-[10px] sm:text-xs whitespace-nowrap">
                   {formatDateKR(row.date)}
+                </td>
+                <td className="py-2 px-2 text-right text-[10px] sm:text-xs font-mono text-yellow-300 whitespace-nowrap">
+                  {row.kospiClose?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) ?? '-'}
                 </td>
                 <td
                   className={`py-2 px-2 text-right text-[10px] sm:text-xs font-mono ${row.individual >= 0 ? 'text-emerald-400' : 'text-rose-400'
