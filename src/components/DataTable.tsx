@@ -53,37 +53,37 @@ export default function DataTable({ data }: Props) {
                     {row.kospiClose?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) ?? '-'}
                   </td>
                   <td
-                    className={`py-2 px-2 text-right text-[10px] sm:text-xs font-mono ${row.individual >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                    className={`py-2 px-2 text-right text-[10px] sm:text-xs font-mono ${row.individual >= 0 ? 'text-red-500' : 'text-blue-400'
                       }`}
                   >
                     {formatNumber(row.individual)}
                   </td>
                   <td
-                    className={`py-2 px-2 text-right text-[10px] sm:text-xs font-mono ${row.foreign >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                    className={`py-2 px-2 text-right text-[10px] sm:text-xs font-mono ${row.foreign >= 0 ? 'text-red-500' : 'text-blue-400'
                       }`}
                   >
                     {formatNumber(row.foreign)}
                   </td>
                   <td
-                    className={`py-2 px-2 text-right text-[10px] sm:text-xs font-mono font-bold ${row.financialInvestment >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                    className={`py-2 px-2 text-right text-[10px] sm:text-xs font-mono font-bold ${row.financialInvestment >= 0 ? 'text-red-500' : 'text-blue-400'
                       }`}
                   >
                     {formatNumber(row.financialInvestment)}
                   </td>
                   <td
-                    className={`py-2 px-2 text-right text-[10px] sm:text-xs font-mono hidden md:table-cell ${row.insurance >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                    className={`py-2 px-2 text-right text-[10px] sm:text-xs font-mono hidden md:table-cell ${row.insurance >= 0 ? 'text-red-500' : 'text-blue-400'
                       }`}
                   >
                     {formatNumber(row.insurance)}
                   </td>
                   <td
-                    className={`py-2 px-2 text-right text-[10px] sm:text-xs font-mono hidden md:table-cell ${row.investmentTrust >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                    className={`py-2 px-2 text-right text-[10px] sm:text-xs font-mono hidden md:table-cell ${row.investmentTrust >= 0 ? 'text-red-500' : 'text-blue-400'
                       }`}
                   >
                     {formatNumber(row.investmentTrust)}
                   </td>
                   <td
-                    className={`py-2 px-2 text-right text-[10px] sm:text-xs font-mono hidden sm:table-cell ${row.pension >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                    className={`py-2 px-2 text-right text-[10px] sm:text-xs font-mono hidden sm:table-cell ${row.pension >= 0 ? 'text-red-500' : 'text-blue-400'
                       }`}
                   >
                     {formatNumber(row.pension)}
