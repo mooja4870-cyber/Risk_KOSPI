@@ -1,9 +1,9 @@
 {
   "meta": {
     "source": "Naver Finance investor detail + KOSPI close (historical + 24-hour refresh)",
-    "updatedAtKst": "2026-03-12 16:27:55",
+    "updatedAtKst": "2026-03-13 16:00:21",
     "earliestTradingDate": "1997-04-14",
-    "latestTradingDate": "2026-03-12",
+    "latestTradingDate": "2026-03-13",
     "refreshIntervalHours": 24,
     "historicalStartDate": "1997-01-01"
   },
@@ -118,7 +118,7 @@
       "otherFinancial": 0,
       "pension": 0,
       "otherCorporation": 0,
-      "kospiClose": 687.96
+      "kospiClose": null
     },
     {
       "date": "1997-04-23",
@@ -100905,6 +100905,20 @@
       "pension": -374,
       "otherCorporation": 764,
       "kospiClose": 5583.25
+    },
+    {
+      "date": "2026-03-13",
+      "individual": 24512,
+      "foreign": -14502,
+      "institution": -10434,
+      "financialInvestment": -9500,
+      "insurance": 13,
+      "investmentTrust": -1482,
+      "bank": 32,
+      "otherFinancial": 218,
+      "pension": 285,
+      "otherCorporation": 424,
+      "kospiClose": 5487.24
     }
   ]
 }
