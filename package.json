@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:streamlit": "vite build && cp dist/index.html streamlit_static/index.html",
     "preview": "vite preview",
     "update:data": "python3 scripts/update_latest_data.py"
   },
