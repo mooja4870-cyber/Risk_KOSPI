@@ -120,7 +120,8 @@ export default function App() {
           return;
         }
 
-        const response = await fetch(`/latest-trading-data.json?_ts=${Date.now()}`, {
+        const latestDataPath = `${import.meta.env.BASE_URL}latest-trading-data.json`;
+        const response = await fetch(`${latestDataPath}?_ts=${Date.now()}`, {
           cache: 'no-store',
         });
         if (!response.ok) return;

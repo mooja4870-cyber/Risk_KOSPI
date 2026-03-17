@@ -7,9 +7,12 @@ import { viteSingleFile } from "vite-plugin-singlefile";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const repoName = "Risk_KOSPI";
+const isGitHubActions = process.env.GITHUB_ACTIONS === "true";
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: isGitHubActions ? `/${repoName}/` : "/",
   plugins: [react(), tailwindcss(), viteSingleFile()],
   resolve: {
     alias: {
