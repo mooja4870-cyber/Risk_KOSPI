@@ -312,6 +312,18 @@ export default function App() {
                 </button>
               ))}
             </div>
+
+            <div className="col-span-2 sm:col-auto sm:ml-auto">
+              <a
+                href="https://finance.naver.com/"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border border-emerald-500/40 text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 hover:text-emerald-200 transition-all"
+              >
+                <Globe2 className="w-3.5 h-3.5" />
+                네이버
+              </a>
+            </div>
           </div>
 
           {/* Data info */}
