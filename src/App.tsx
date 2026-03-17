@@ -318,7 +318,17 @@ export default function App() {
             <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-gray-500">
               <span className="flex items-center gap-1">📊 {analyzedStartDate} ~ {analyzedEndDate}</span>
               <span className="flex items-center gap-1">📅 {stats.tradingDays}일</span>
-              <span className="text-emerald-400/80">🔄 {dataSource.split(' ')[0]}</span>
+              <span className="text-emerald-400/80 flex items-center gap-1">
+                🔄
+                <a
+                  href="https://finance.naver.com/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-emerald-400 hover:text-emerald-300 hover:underline"
+                >
+                  네이버
+                </a>
+              </span>
               {dataUpdatedAt && <span>🕒 {dataUpdatedAt.slice(5, 16)}</span>}
             </div>
           )}
